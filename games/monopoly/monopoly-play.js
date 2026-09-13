@@ -1,41 +1,13 @@
-import {api,roomCode,node} from '../live/shared.js';
-const $=s=>document.querySelector(s),code=roomCode();
-let state,id=localStorage.getItem(`mono-${code}`),busy=false,animating=false,seen=0,positions={};
-const colors=['#d75a52','#426ad3','#bf8b20','#8c54b4','#258f76','#b84f87'];
-const notice=node('p','notice');notice.hidden=true;notice.setAttribute('role','alert');$('main').prepend(notice);
-function error(e){notice.textContent=e.message;notice.hidden=false;}
-const delay=ms=>new Promise(r=>setTimeout(r,ms));
-function render(){
- const players=Object.values(state.players||{}),spaces=state.spaces||[];
- if(id&&!players.some(p=>p.id===id)){id=null;localStorage.removeItem(`mono-${code}`);}
- $('#join').hidden=!!id;$('#game').hidden=!id;$('#title').textContent=state.title;
- const current=players[state.turn%Math.max(1,players.length)];
- $('#players').replaceChildren(...players.map((p,i)=>{const e=node('span',`player ${p.id===current?.id?'current':''}`),dot=node('span','dot');dot.style.background=colors[i%colors.length];e.append(dot,document.createTextNode(`${p.name} · ${p.points} คะแนน`));return e;}));
- $('#turn-label').textContent=state.winner&&!animating?`🏆 ผู้ชนะ: ${state.winner.name}`:animating?'กำลังเดิน…':`ตาของ ${current?.name||'—'}`;
- let offset=0;const tiles=[];
- for(let side=0;side<4;side++){
-  const count=Math.floor(spaces.length/4)+(side<spaces.length%4?1:0);
-  for(let j=0;j<count;j++){
-   const index=offset+j,e=node('div','space'),step=86/count;
-   const coords=side===0?[j*step,0,step,14]:side===1?[86,j*step,14,step]:side===2?[100-(j+1)*step,86,step,14]:[0,100-(j+1)*step,14,step];
-   ['left','top','width','height'].forEach((k,i)=>e.style[k]=`${coords[i]}%`);e.style.setProperty('--stripe',colors[index%colors.length]);e.style.setProperty('--tile-color',['#fff0dc','#e0eefb','#f4e4f5','#e3f2dc'][index%4]);
-   e.append(node('span','space-number',index===0?'Start/Finish':index+1));if(index===0)e.append(node('span','finish-flag','🏁'));if(index===0)e.classList.add('start-space');const tokens=node('div','tokens');
-   players.forEach((p,i)=>{if((positions[p.id]??p.position)===index+1){const t=node('span','token',i+1);t.style.background=colors[i%colors.length];t.title=p.name;tokens.append(t);}});e.append(tokens);tiles.push(e);
-  }offset+=count;
- }
- $('#board').replaceChildren(...tiles);$('#roll').disabled=busy||animating||!!state.winner||!id||current?.id!==id;
-}
-async function playResult(result){
- animating=true;positions[result.player]=result.from;render();$('#roll').classList.add('rolling');
- await delay(1400);
- $('#roll').classList.remove('rolling');$('#dice').style.transform=['rotateX(0deg) rotateY(0deg)','rotateX(0deg) rotateY(-90deg)','rotateX(-90deg) rotateY(0deg)','rotateX(90deg) rotateY(0deg)','rotateX(0deg) rotateY(90deg)','rotateX(0deg) rotateY(180deg)'][result.roll-1];$('#roll').setAttribute('aria-label',`ทอยลูกเต๋า · ล่าสุด ${result.roll} แต้ม`);await delay(350);
- for(let i=1;i<=(result.steps??result.roll);i++){positions[result.player]=(result.from-1+i)%state.spaces.length+1;render();await delay(180);}
- const space=state.spaces[result.spaceId-1];$('#landing-number').textContent=`${result.name} · ช่อง ${result.spaceId}`;$('#landing-title').textContent=state.winner?`🏆 ${state.winner.name} ชนะ!`:space?.title||'เปิดป้าย';$('#landing-text').textContent=result.message;$('#landing-effect').textContent=state.winner?'เดินครบหนึ่งรอบถึง Start/Finish เป็นคนแรก':`${result.to!==result.spaceId?`ย้ายไปช่อง ${result.to} · `:''}คะแนน ${space?.points||0}`;
- await new Promise(resolve=>{const dialog=$('#landing');dialog.addEventListener('close',resolve,{once:true});$('#continue').onclick=()=>dialog.close();dialog.showModal();});
- positions[result.player]=result.to;render();await delay(300);positions={};animating=false;$('#message').textContent=`${result.name} ทอยได้ ${result.roll} → ช่อง ${result.to}`;render();
-}
-async function accept(next){state=next;const r=state.lastRoll;if(r&&(r.at||state.revision)>seen){seen=r.at||state.revision;await playResult(r);}else render();}
-async function refresh(){if(busy||animating)return;try{const r=await api('monopolyPublic',{room:code},'',true);if(!state){state=r.state;seen=state.lastRoll?.at||state.revision;render();}else await accept(r.state);}catch(e){error(e);}}
-$('#join').onsubmit=async e=>{e.preventDefault();if(busy)return;busy=true;$('#join-btn').disabled=true;try{const r=await api('monopolyJoin',{room:code,name:$('#name').value});id=r.playerId;localStorage.setItem(`mono-${code}`,id);state=r.state;seen=state.lastRoll?.at||state.revision;notice.hidden=true;render();}catch(e){error(e);}finally{busy=false;$('#join-btn').disabled=false;if(state)render();}};
-$('#roll').onclick=async()=>{if(busy||animating)return;busy=true;render();try{const r=await api('monopolyRoll',{room:code,playerId:id});notice.hidden=true;await accept(r.state);}catch(e){error(e);}finally{busy=false;render();}};
-refresh();setInterval(refresh,1500);
+import {api,roomCode,node} from '../live/shared.js';const $=s=>document.querySelector(s),code=roomCode();let state,busy=false,seen=null,offset=0;
+const colors=['#de8670','#83a6d3','#b8a0d3','#92bd86'];const notice=node('p','notice');notice.hidden=true;$('main').prepend(notice);
+const wait=ms=>new Promise(r=>setTimeout(r,ms));function error(e){notice.textContent=e.message;notice.hidden=false;}
+function render(position){const ps=state.players||[],current=ps[state.turn];$('#title').textContent=state.title;$('#turn-label').textContent=state.winner?'🏆 '+state.winner.name+' ชนะ!':'ตาของ '+(current?.name||'รอผู้สอนเพิ่มทีม');$('#roll').disabled=busy||!!state.winner||!ps.length||!!(state.lastRoll&&state.lastRoll.phase!=='resolved');$('#players').replaceChildren(...ps.map((p,i)=>{const e=node('span','player',`${i+1}. ${p.name} · ${p.points} คะแนน`);e.style.borderColor=colors[i%4];return e;}));const path=[];for(let x=0;x<10;x++)path.push([x,0]);for(let y=0;y<10;y++)path.push([10,y]);for(let x=10;x>0;x--)path.push([x,10]);for(let y=10;y>0;y--)path.push([0,y]);$('#board').replaceChildren(...path.map(([x,y],i)=>{const e=node('div','space');Object.assign(e.style,{left:x*100/11+'%',top:y*100/11+'%',width:100/11+'%',height:100/11+'%'});e.style.setProperty('--stripe',colors[i%4]);e.style.setProperty('--tile-color',['#fff0dc','#e0eefb','#f4e4f5','#e3f2dc'][i%4]);e.append(node('span','space-number',i?i+1:'Start/Finish'));if(!i)e.classList.add('start-space');const tokens=node('div','tokens');ps.forEach((p,k)=>{if((position?.id===p.id?position.value:p.position)===i+1){const t=node('span','token',k+1);t.title=p.name;t.style.background=colors[k%4];tokens.append(t);}});e.append(tokens);return e;}));}
+const answers=node('div');$('#landing-effect').after(answers);let modalRound=null;
+function modal(){const r=state.lastRoll;if(!r)return;const d=$('#landing');if(r.phase==='resolved'&&modalRound!==r.id&&!state.winner)return;modalRound=r.id;$('#landing-number').textContent=r.name+' · ช่อง '+r.spaceId;$('#landing-title').textContent=state.winner?'🏆 '+state.winner.name+' ชนะ!':r.phase==='question'?r.question.title:'เปิดป้าย';$('#landing-text').textContent=r.phase==='question'?'เลือกคำตอบก่อนหมดเวลา':r.message;answers.replaceChildren();$('#continue').hidden=r.phase==='question';$('#continue').textContent=r.phase==='landing'&&r.question?'เริ่มตอบคำถาม':'ไปต่อ';$('#landing-effect').textContent=r.phase==='resolved'?`ย้ายไปช่อง ${r.to}`:'';
+ if(r.phase==='question')r.question.options.forEach((x,i)=>{const b=node('button','secondary',x);b.onclick=()=>command('monopolyAnswer',{roundId:r.id,choice:i});answers.append(b);});
+ $('#continue').onclick=()=>r.phase==='resolved'?d.close():command('monopolyContinue',{roundId:r.id});if(!d.open)d.showModal();}
+$('#landing').addEventListener('cancel',e=>{if(state?.lastRoll?.phase!=='resolved')e.preventDefault();});
+async function receive(next){const old=state;state=next;const r=state.lastRoll;if(r&&r.id!==seen){seen=r.id;busy=true;render({id:r.player,value:r.from});$('#roll').classList.add('rolling');await wait(1400);$('#roll').classList.remove('rolling');$('#dice').style.transform=['rotateX(0deg)','rotateY(-90deg)','rotateX(-90deg)','rotateX(90deg)','rotateY(90deg)','rotateY(180deg)'][r.roll-1];for(let i=1;i<=r.steps;i++){render({id:r.player,value:(r.from-1+i)%40+1});await wait(180);}busy=false;render();modal();}else{render();if(r&&(r.phase!=='resolved'||old?.lastRoll?.phase!=='resolved'&&old?.lastRoll))modal();}}
+async function command(a,data={}){if(busy)return;busy=true;render();try{const r=await api(a,{room:code,...data});busy=false;notice.hidden=true;await receive(r.state);}catch(e){busy=false;error(e);render();}}
+async function refresh(){if(busy)return;try{const r=await api('monopolyPublic',{room:code},'',true);offset=r.serverNow-Date.now();if(!state){state=r.state;seen=state.lastRoll?.id;render();if(state.lastRoll&&state.lastRoll.phase!=='resolved')modal();}else await receive(r.state);}catch(e){error(e);}}
+$('#roll').onclick=()=>command('monopolyRoll');setInterval(()=>{const r=state?.lastRoll;if(r?.phase==='question')$('#landing-effect').textContent=`เหลือ ${Math.max(0,Math.ceil((r.deadline-Date.now()-offset)/1000))} วินาที`;},100);refresh();setInterval(refresh,1000);

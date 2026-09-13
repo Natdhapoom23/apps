@@ -1,25 +1,8 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import {newMonopoly,monopolyPublic,mutateMonopoly} from '../lib/monopoly.mjs';
-test('empty Firebase room can load, join, roll and reset',()=>{
- const room=newMonopoly('ABC123',1000);delete room.players;delete room.lastRoll;
- assert.deepEqual(monopolyPublic(room).players,[]);
- assert.equal(monopolyPublic(room).lastRoll,null);
- const joined=mutateMonopoly(room,'monopolyJoin',{name:'ทดสอบ'},{},2000);
- assert.equal(room.public.players.length,1);
- mutateMonopoly(room,'monopolyRoll',{playerId:joined.playerId},{},3000);
- assert.ok(room.lastRoll.roll>=1&&room.lastRoll.roll<=6);
- mutateMonopoly(room,'monopolyReset',{}, {role:'admin'},4000);
- assert.equal(room.players[joined.playerId].position,1);
-});
-test('finish declares first winner, stops rolls and reset starts a fresh race',()=>{
- const g=newMonopoly('ABC123',1);
- mutateMonopoly(g,'monopolyJoin',{name:'ทีม A',playerId:'a'},{},2);
- g.players.a.position=25;
- mutateMonopoly(g,'monopolyRoll',{playerId:'a'},{},3);
- assert.equal(g.winner.id,'a');assert.equal(g.players.a.position,1);
- assert.equal(g.lastRoll.steps,1);
- assert.throws(()=>mutateMonopoly(g,'monopolyRoll',{playerId:'a'},{},4),/เกมจบแล้ว/);
- mutateMonopoly(g,'monopolyReset',{}, {role:'admin'},5);
- assert.equal(g.winner,null);assert.equal(g.players.a.progress,0);
-});
+import test from 'node:test';import assert from 'node:assert/strict';import {newMonopoly,mutateMonopoly,monopolyPublic} from '../lib/monopoly.mjs';
+const admin={role:'admin'};
+function quiz(){const g=newMonopoly('ABC123',0);g.spaces.forEach(x=>x.question={title:'ทดสอบ',options:['ถูก','ผิด'],correct:0,seconds:3,forward:3,backward:2});mutateMonopoly(g,'monopolyRoll',{}, {},1);return g;}
+test('40 spaces and five teams; rolling twice is blocked',()=>{const g=quiz();assert.equal(g.spaces.length,40);assert.equal(Object.keys(g.players).length,5);assert.throws(()=>mutateMonopoly(g,'monopolyRoll',{}, {},2));assert.equal(g.turn,0);assert.equal(monopolyPublic(g).lastRoll.question.correct,undefined);});
+test('question correct moves forward and advances turn once',()=>{const g=quiz(),r=g.lastRoll;mutateMonopoly(g,'monopolyContinue',{roundId:r.id},{},5000);assert.equal(r.deadline,8000);const at=g.players[r.player].position;mutateMonopoly(g,'monopolyAnswer',{roundId:r.id,choice:0},{},6000);assert.equal(g.players[r.player].position,at+3);assert.equal(g.turn,1);mutateMonopoly(g,'monopolyAnswer',{roundId:r.id,choice:0},{},6100);assert.equal(g.turn,1);});
+test('timeout retreats and late answers cannot change outcome',()=>{const g=quiz(),r=g.lastRoll;mutateMonopoly(g,'monopolyContinue',{roundId:r.id},{},5000);const at=g.players[r.player].position;mutateMonopoly(g,'monopolyTick',{}, {},8000);assert.equal(r.correct,false);assert.equal(g.players[r.player].position,Math.max(1,at-2));assert.equal(g.turn,1);mutateMonopoly(g,'monopolyAnswer',{roundId:r.id,choice:0},{},9000);assert.equal(r.correct,false);});
+test('winner stops play and reset restores teams',()=>{const g=newMonopoly('ABC123',0);g.players.team0.position=40;mutateMonopoly(g,'monopolyRoll',{}, {},1);assert.equal(g.winner.id,'team0');assert.throws(()=>mutateMonopoly(g,'monopolyRoll',{}, {},2));mutateMonopoly(g,'monopolyReset',{},admin,3);assert.equal(g.winner,null);assert.equal(g.players.team0.position,1);});
+test('teacher can add and remove teams and delete a question',()=>{const g=newMonopoly('ABC123',0);mutateMonopoly(g,'monopolySave',{title:'test',spaces:g.spaces,teams:[{id:'new',name:'New'}]},admin,1);assert.deepEqual(Object.keys(g.players),['new']);assert.equal(g.spaces[3].question,undefined);});
