@@ -10,8 +10,16 @@ function render() {
   if (!state) return;
   $('#room-title').textContent = state.title;
   if (!participant) {
-    $('#team').replaceChildren(new Option('เลือกทีม', ''));
-    (state.players || []).forEach(t => $('#team').append(new Option(`${t.name} · ${t.members || 0} คน`, t.id)));
+    const teamSelect = $('#team');
+    const teams = state.players || [];
+    const signature = teams.map(t => `${t.id}:${t.name}:${t.members || 0}`).join('|');
+    if (teamSelect.dataset.signature !== signature) {
+      const selected = teamSelect.value;
+      teamSelect.replaceChildren(new Option('เลือกทีม', ''));
+      teams.forEach(t => teamSelect.append(new Option(`${t.name} · ${t.members || 0} คน`, t.id)));
+      teamSelect.dataset.signature = signature;
+      teamSelect.value = teams.some(t => t.id === selected) ? selected : '';
+    }
     $('#join-panel').hidden = false; $('#player-panel').hidden = true; return;
   }
   $('#join-panel').hidden = true; $('#player-panel').hidden = false;
