@@ -6,3 +6,7 @@
 @media(max-width:480px){.top{padding:15px;gap:10px}.top .brand{font-size:15px}.entry{padding:0 18px}.panel{padding:22px}.admin-shell{padding:0 15px;margin-top:22px}.metrics{gap:10px}.metrics>div{padding:16px}.metrics strong{font-size:32px}.metrics .phase-label{font-size:18px}.form-grid{gap:0 12px}.scoreboards{grid-template-columns:1fr}.display-shell{padding:15px}.stage{padding:20px}.stage h1{font-size:28px}.display-body .top .small{display:none}.join-block{gap:15px}.join-block img{width:145px;height:145px}.countdown{width:64px;height:64px;min-width:64px;font-size:25px}.player-shell{padding:0 17px 35px}.question-detail{min-width:70%}dialog{padding:20px}.answer-button{font-size:19px}.option-line{font-size:17px}.explanation{font-size:17px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 .account-panel{display:grid;gap:16px;margin:24px 0}.password-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:end}.password-form .button{height:42px}@media(max-width:720px){.password-form{grid-template-columns:1fr}}
+/* The display is a presentation canvas: keep the dark surface across the full viewport. */
+html:has(body.display-body){background:#111a17}
+body.display-body{min-height:100vh;background:#111a17!important}
+body.display-body:fullscreen{min-height:100vh;overflow:auto}
