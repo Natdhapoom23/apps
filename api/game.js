@@ -1,6 +1,6 @@
 import QRCode from 'qrcode';
 import { randomBytes } from 'node:crypto';
-import { configured, demo, readRoom, readPublic, listRooms, createRoom, updateRoom, takeLimit, checkRules, getAdminPassword, setAdminPassword } from '../lib/store.mjs';
+import { configured, demo, readRoom, readPublic, listRooms, createRoom, deleteRoom, updateRoom, takeLimit, checkRules, getAdminPassword, setAdminPassword } from '../lib/store.mjs';
 import { newRoom, publicState, mutate, id, assert, GameError } from '../lib/engine.mjs';
 import { same, sign, verify, digest } from '../lib/auth.mjs';
 export default async function handler(req,res) {
@@ -59,6 +59,10 @@ export default async function handler(req,res) {
       const actor=verify(req);assert(actor.role==='admin','เฉพาะผู้สอน',403);
       let room;for(let i=0;i<5;i++){const code=randomBytes(3).toString('hex').toUpperCase();room=newRoom(code,Date.now());room.public=publicState(room,Date.now());if(await createRoom(room))return send(200,{room,serverNow:Date.now()});}
       throw new GameError('สร้างห้องไม่สำเร็จ กรุณาลองใหม่',503);
+    }
+    if(action==='delete') {
+      const actor=verify(req);assert(actor.role==='admin','เฉพาะผู้สอน',403);assert(/^[A-Z0-9]{6}$/.test(code||''),'รหัสห้องไม่ถูกต้อง');
+      assert(await deleteRoom(code),'ไม่พบห้องนี้',404);return send(200,{ok:true,serverNow:Date.now()});
     }
     assert(/^[A-Z0-9]{6}$/.test(code||''),'รหัสห้องไม่ถูกต้อง');
     if(action==='join'&&data.joinKey!==undefined)assert(/^[a-f0-9]{32}$/.test(data.joinKey),'รหัสเข้าร่วมไม่ถูกต้อง');
