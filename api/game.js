@@ -32,7 +32,7 @@ export default async function handler(req,res) {
       if(action==='public'){const state=await readPublic(code);assert(state,'ไม่พบห้องนี้',404);return send(200,{state,serverNow:Date.now()});}
       if(action==='boardPublic'){const board=await readBoard(code);assert(board,'ไม่พบห้องแผ่นป้าย',404);return send(200,{state:board.public||boardPublic(board),serverNow:Date.now()});}
       if(action==='boardAdmin'){const actor=verify(req);assert(actor.role==='admin','เฉพาะผู้สอน',403);const board=await readBoard(code);assert(board,'ไม่พบห้องแผ่นป้าย',404);return send(200,{board,serverNow:Date.now()});}
-      if(action==='monopolyPublic'){const g=await readMonopoly(code);assert(g,'ไม่พบห้องเกมเศรษฐี',404);return send(200,{state:g.public||monopolyPublic(g),serverNow:Date.now()});}
+      if(action==='monopolyPublic'){const g=await readMonopoly(code);assert(g,'ไม่พบห้องเกมเศรษฐี',404);return send(200,{state:monopolyPublic(g),serverNow:Date.now()});}
       if(action==='monopolyAdmin'){const actor=verify(req);assert(actor.role==='admin','เฉพาะผู้สอน',403);const g=await readMonopoly(code);assert(g,'ไม่พบห้องเกมเศรษฐี',404);return send(200,{game:g,serverNow:Date.now()});}
       if(action==='wheelPublic'){const w=await readWheel(code);assert(w,'ไม่พบห้องวงล้อ',404);return send(200,{state:w.public||wheelPublic(w),serverNow:Date.now()});}
       if(action==='wheelAdmin'){const actor=verify(req);assert(actor.role==='admin','เฉพาะผู้สอน',403);const w=await readWheel(code);assert(w,'ไม่พบห้องวงล้อ',404);return send(200,{wheel:w,serverNow:Date.now()});}
