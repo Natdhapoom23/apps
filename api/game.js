@@ -1,8 +1,9 @@
 import QRCode from 'qrcode';
 import { randomBytes } from 'node:crypto';
-import { configured, demo, readRoom, readPublic, listRooms, createRoom, deleteRoom, updateRoom, takeLimit, checkRules, getAdminPassword, setAdminPassword, listBoards, createBoard, readBoard, updateBoard } from '../lib/store.mjs';
+import { configured, demo, readRoom, readPublic, listRooms, createRoom, deleteRoom, updateRoom, takeLimit, checkRules, getAdminPassword, setAdminPassword, listBoards, createBoard, readBoard, updateBoard, listWheels, createWheel, readWheel, updateWheel } from '../lib/store.mjs';
 import { newRoom, publicState, mutate, id, assert, GameError } from '../lib/engine.mjs';
 import { newBoard, boardPublic, mutateBoard } from '../lib/board.mjs';
+import { newWheel, wheelPublic, mutateWheel } from '../lib/wheel.mjs';
 import { same, sign, verify, digest } from '../lib/auth.mjs';
 export default async function handler(req,res) {
   res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','application/json; charset=utf-8');res.setHeader('X-Content-Type-Options','nosniff');
@@ -16,6 +17,7 @@ export default async function handler(req,res) {
       const action=url.searchParams.get('action'),code=url.searchParams.get('room')||'';
       if(action==='rooms'){assert(verify(req).role==='admin','เฉพาะผู้สอน',403);return send(200,{rooms:await listRooms(),serverNow:Date.now()});}
       if(action==='boardRooms'){assert(verify(req).role==='admin','เฉพาะผู้สอน',403);return send(200,{rooms:await listBoards(),serverNow:Date.now()});}
+      if(action==='wheelRooms'){assert(verify(req).role==='admin','เฉพาะผู้สอน',403);return send(200,{rooms:await listWheels(),serverNow:Date.now()});}
       assert(/^[A-Z0-9]{6}$/.test(code),'รหัสห้องไม่ถูกต้อง');
       if(action==='qr'){
         assert(await readPublic(code),'ไม่พบห้องนี้',404);
@@ -28,6 +30,8 @@ export default async function handler(req,res) {
       if(action==='public'){const state=await readPublic(code);assert(state,'ไม่พบห้องนี้',404);return send(200,{state,serverNow:Date.now()});}
       if(action==='boardPublic'){const board=await readBoard(code);assert(board,'ไม่พบห้องแผ่นป้าย',404);return send(200,{state:board.public||boardPublic(board),serverNow:Date.now()});}
       if(action==='boardAdmin'){const actor=verify(req);assert(actor.role==='admin','เฉพาะผู้สอน',403);const board=await readBoard(code);assert(board,'ไม่พบห้องแผ่นป้าย',404);return send(200,{board,serverNow:Date.now()});}
+      if(action==='wheelPublic'){const w=await readWheel(code);assert(w,'ไม่พบห้องวงล้อ',404);return send(200,{state:w.public||wheelPublic(w),serverNow:Date.now()});}
+      if(action==='wheelAdmin'){const actor=verify(req);assert(actor.role==='admin','เฉพาะผู้สอน',403);const w=await readWheel(code);assert(w,'ไม่พบห้องวงล้อ',404);return send(200,{wheel:w,serverNow:Date.now()});}
       const actor=verify(req,code),room=await readRoom(code);assert(room,'ไม่พบห้องนี้',404);
       if(action==='admin'){assert(actor.role==='admin','เฉพาะผู้สอน',403);const {public:_,...privateRoom}=room;return send(200,{room:privateRoom,serverNow:Date.now()});}
       assert(action==='me'&&actor.role==='player','ไม่รู้จักคำสั่ง');
@@ -65,6 +69,7 @@ export default async function handler(req,res) {
       throw new GameError('สร้างห้องไม่สำเร็จ กรุณาลองใหม่',503);
     }
     if(action==='boardCreate') { const actor=verify(req);assert(actor.role==='admin','เฉพาะผู้สอน',403);let board;for(let i=0;i<5;i++){const code=randomBytes(3).toString('hex').toUpperCase();board=newBoard(code,Date.now());board.public=boardPublic(board);if(await createBoard(board))return send(200,{board,serverNow:Date.now()});}throw new GameError('สร้างห้องแผ่นป้ายไม่สำเร็จ',503); }
+    if(action==='wheelCreate') { const actor=verify(req);assert(actor.role==='admin','เฉพาะผู้สอน',403);let w;for(let i=0;i<5;i++){const code=randomBytes(3).toString('hex').toUpperCase();w=newWheel(code,Date.now());w.public=wheelPublic(w);if(await createWheel(w))return send(200,{wheel:w,serverNow:Date.now()});}throw new GameError('สร้างห้องวงล้อไม่สำเร็จ',503); }
     if(action==='delete') {
       const actor=verify(req);assert(actor.role==='admin','เฉพาะผู้สอน',403);assert(/^[A-Z0-9]{6}$/.test(code||''),'รหัสห้องไม่ถูกต้อง');
       assert(await deleteRoom(code),'ไม่พบห้องนี้',404);return send(200,{ok:true,serverNow:Date.now()});
@@ -72,6 +77,8 @@ export default async function handler(req,res) {
     assert(/^[A-Z0-9]{6}$/.test(code||''),'รหัสห้องไม่ถูกต้อง');
     if(action==='boardOpen'){const board=await readBoard(code);assert(board,'ไม่พบห้องแผ่นป้าย',404);const result=await updateBoard(code,draft=>mutateBoard(draft,action,data,{role:'player'},Date.now()));return send(200,{...result.result,state:result.board.public,serverNow:Date.now()});}
     if(['boardSave','boardReset'].includes(action)){const actor=verify(req);assert(actor.role==='admin','เฉพาะผู้สอน',403);const result=await updateBoard(code,draft=>mutateBoard(draft,action,data,actor,Date.now()));return send(200,{...result.result,state:result.board.public,serverNow:Date.now()});}
+    if(action==='wheelSpin'){const result=await updateWheel(code,draft=>mutateWheel(draft,action,data,{role:'player'},Date.now()));return send(200,{...result.result,state:result.wheel.public,serverNow:Date.now()});}
+    if(['wheelSave','wheelReset'].includes(action)){const actor=verify(req);assert(actor.role==='admin','เฉพาะผู้สอน',403);const result=await updateWheel(code,draft=>mutateWheel(draft,action,data,actor,Date.now()));return send(200,{...result.result,state:result.wheel.public,serverNow:Date.now()});}
     if(action==='join'&&data.joinKey!==undefined)assert(/^[a-f0-9]{32}$/.test(data.joinKey),'รหัสเข้าร่วมไม่ถูกต้อง');
     const actor=action==='join'?{role:'player',id:data.joinKey?digest(`${code}:${data.joinKey}`).slice(0,24):id(),room:code}:verify(req,code);
     if(action==='join')assert(await takeLimit(`join-${code}`,400,60000),'มีผู้เข้าร่วมมาก กรุณาลองใหม่ในอีกสักครู่',429);

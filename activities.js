@@ -27,5 +27,5 @@ window.ACTIVITIES = [
     coverLabel: "OPEN\nTHE BOARD",
     coverNote: "เลือกเลข แล้วเปิดดู",
     theme: "blue"
-  }
+  }  ,{title:"วงล้อเสี่ยงโชค",description:"เพิ่มตัวเลือก หมุนสุ่ม และประกาศผลพร้อมกันทั้งห้อง",category:"เกมกิจกรรม",format:"ตั้งค่าได้โดยผู้สอน",image:"",url:"./games/wheel/",coverLabel:"LUCKY\nWHEEL",coverNote:"หมุนแล้วลุ้นผล",theme:"peach"}
 ];
