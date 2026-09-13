@@ -1,6 +1,6 @@
 import QRCode from 'qrcode';
 import { randomBytes } from 'node:crypto';
-import { configured, demo, readRoom, readPublic, listRooms, createRoom, deleteRoom, updateRoom, takeLimit, checkRules, getAdminPassword, setAdminPassword, listBoards, createBoard, readBoard, updateBoard, listWheels, createWheel, readWheel, updateWheel, deleteWheel } from '../lib/store.mjs';
+import { configured, demo, readRoom, readPublic, listRooms, createRoom, deleteRoom, updateRoom, takeLimit, checkRules, getAdminPassword, setAdminPassword, listBoards, createBoard, readBoard, updateBoard, deleteBoard, listWheels, createWheel, readWheel, updateWheel, deleteWheel } from '../lib/store.mjs';
 import { newRoom, publicState, mutate, id, assert, GameError } from '../lib/engine.mjs';
 import { newBoard, boardPublic, mutateBoard } from '../lib/board.mjs';
 import { newWheel, wheelPublic, mutateWheel } from '../lib/wheel.mjs';
@@ -68,6 +68,7 @@ export default async function handler(req,res) {
       let room;for(let i=0;i<5;i++){const code=randomBytes(3).toString('hex').toUpperCase();room=newRoom(code,Date.now());room.public=publicState(room,Date.now());if(await createRoom(room))return send(200,{room,serverNow:Date.now()});}
       throw new GameError('สร้างห้องไม่สำเร็จ กรุณาลองใหม่',503);
     }
+    if(action==='boardDelete'){const actor=verify(req);assert(actor.role==='admin','เฉพาะผู้สอน',403);assert(await deleteBoard(code),'ไม่พบห้องนี้',404);return send(200,{ok:true,serverNow:Date.now()});}
     if(action==='boardCreate') { const actor=verify(req);assert(actor.role==='admin','เฉพาะผู้สอน',403);let board;for(let i=0;i<5;i++){const code=randomBytes(3).toString('hex').toUpperCase();board=newBoard(code,Date.now());board.public=boardPublic(board);if(await createBoard(board))return send(200,{board,serverNow:Date.now()});}throw new GameError('สร้างห้องแผ่นป้ายไม่สำเร็จ',503); }
     if(action==='wheelDelete') { const actor=verify(req);assert(actor.role==='admin','เฉพาะผู้สอน',403);assert(/^[A-Z0-9]{6}$/.test(code||''),'รหัสห้องไม่ถูกต้อง');assert(await deleteWheel(code),'ไม่พบห้องนี้',404);return send(200,{ok:true,serverNow:Date.now()}); }
     if(action==='wheelCreate') { const actor=verify(req);assert(actor.role==='admin','เฉพาะผู้สอน',403);let w;for(let i=0;i<5;i++){const code=randomBytes(3).toString('hex').toUpperCase();w=newWheel(code,Date.now());w.public=wheelPublic(w);if(await createWheel(w))return send(200,{wheel:w,serverNow:Date.now()});}throw new GameError('สร้างห้องวงล้อไม่สำเร็จ',503); }
