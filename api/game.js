@@ -33,7 +33,9 @@ export default async function handler(req,res) {
       if(action==='boardPublic'){const board=await readBoard(code);assert(board,'ไม่พบห้องแผ่นป้าย',404);return send(200,{state:board.public||boardPublic(board),serverNow:Date.now()});}
       if(action==='boardAdmin'){const actor=verify(req);assert(actor.role==='admin','เฉพาะผู้สอน',403);const board=await readBoard(code);assert(board,'ไม่พบห้องแผ่นป้าย',404);return send(200,{board,serverNow:Date.now()});}
       if(action==='monopolyPublic'){const {game:g}=await updateMonopoly(code,draft=>mutateMonopoly(draft,'monopolyTick',{}, {},Date.now()));return send(200,{state:monopolyPublic(g),serverNow:Date.now()});}
+      if(action==='monopolyQr'){const g=await readMonopoly(code);assert(g,'ไม่พบห้องเกมเศรษฐี',404);const proto=req.headers['x-forwarded-proto']==='https'?'https':(process.env.VERCEL?'https':'http');const base=process.env.PUBLIC_URL||process.env.SITE_URL||`${proto}://${req.headers.host}`;const link=new URL(`/games/monopoly/join.html?room=${code}`,base).href;const svg=await QRCode.toString(link,{type:'svg',margin:2,width:280});res.setHeader('Content-Type','image/svg+xml');res.statusCode=200;return res.end(svg);}
       if(action==='monopolyAdmin'){const actor=verify(req);assert(actor.role==='admin','เฉพาะผู้สอน',403);const g=await readMonopoly(code);assert(g,'ไม่พบห้องเกมเศรษฐี',404);return send(200,{game:normalize(g),serverNow:Date.now()});}
+      if(action==='monopolyMe'){const actor=verify(req,code);assert(actor.role==='player','เฉพาะผู้เล่น',403);const g=await readMonopoly(code);assert(g,'ไม่พบห้องเกมเศรษฐี',404);normalize(g);return send(200,{participant:g.participants?.[actor.id]||null,state:monopolyPublic(g),serverNow:Date.now()});}
       if(action==='wheelPublic'){const w=await readWheel(code);assert(w,'ไม่พบห้องวงล้อ',404);return send(200,{state:w.public||wheelPublic(w),serverNow:Date.now()});}
       if(action==='wheelAdmin'){const actor=verify(req);assert(actor.role==='admin','เฉพาะผู้สอน',403);const w=await readWheel(code);assert(w,'ไม่พบห้องวงล้อ',404);return send(200,{wheel:w,serverNow:Date.now()});}
       const actor=verify(req,code),room=await readRoom(code);assert(room,'ไม่พบห้องนี้',404);
@@ -67,6 +69,7 @@ export default async function handler(req,res) {
       await setAdminPassword(data.newPassword);
       return send(200,{ok:true});
     }
+    if(action==='monopolyJoin'){assert(/^[A-Z0-9]{6}$/.test(code||''),'รหัสห้องไม่ถูกต้อง');const joinKey=String(data.joinKey||'');assert(/^[a-f0-9]{32}$/.test(joinKey),'รหัสเข้าร่วมไม่ถูกต้อง');const actor={role:'player',id:digest(`${code}:${joinKey}`).slice(0,24),room:code};const result=await updateMonopoly(code,draft=>mutateMonopoly(draft,'monopolyJoin',data,actor,Date.now()));return send(200,{...result.result,state:result.game.public,participant:result.game.participants[actor.id],token:sign(actor),serverNow:Date.now()});}
     if(action==='create') {
       const actor=verify(req);assert(actor.role==='admin','เฉพาะผู้สอน',403);
       let room;for(let i=0;i<5;i++){const code=randomBytes(3).toString('hex').toUpperCase();room=newRoom(code,Date.now());room.public=publicState(room,Date.now());if(await createRoom(room))return send(200,{room,serverNow:Date.now()});}
@@ -85,7 +88,7 @@ export default async function handler(req,res) {
     assert(/^[A-Z0-9]{6}$/.test(code||''),'รหัสห้องไม่ถูกต้อง');
     if(action==='boardOpen'){const board=await readBoard(code);assert(board,'ไม่พบห้องแผ่นป้าย',404);const result=await updateBoard(code,draft=>mutateBoard(draft,action,data,{role:'player'},Date.now()));return send(200,{...result.result,state:result.board.public,serverNow:Date.now()});}
     if(['boardSave','boardReset'].includes(action)){const actor=verify(req);assert(actor.role==='admin','เฉพาะผู้สอน',403);const result=await updateBoard(code,draft=>mutateBoard(draft,action,data,actor,Date.now()));return send(200,{...result.result,state:result.board.public,serverNow:Date.now()});}
-    if(['monopolyRoll','monopolyAnswer','monopolyContinue'].includes(action)){const result=await updateMonopoly(code,draft=>mutateMonopoly(draft,action,data,{},Date.now()));return send(200,{...result.result,state:result.game.public,serverNow:Date.now()});}
+    if(['monopolyRoll','monopolyAnswer','monopolyContinue'].includes(action)){const actor=action==='monopolyAnswer'?verify(req,code):{};const result=await updateMonopoly(code,draft=>mutateMonopoly(draft,action,data,actor,Date.now()));return send(200,{...result.result,state:result.game.public,serverNow:Date.now()});}
     if(['monopolySave','monopolyReset'].includes(action)){const actor=verify(req);assert(actor.role==='admin','เฉพาะผู้สอน',403);const result=await updateMonopoly(code,draft=>mutateMonopoly(draft,action,data,actor,Date.now()));return send(200,{...result.result,state:result.game.public,serverNow:Date.now()});}
     if(action==='wheelSpin'){const result=await updateWheel(code,draft=>mutateWheel(draft,action,data,{role:'player'},Date.now()));return send(200,{...result.result,state:result.wheel.public,serverNow:Date.now()});}
     if(['wheelSave','wheelReset'].includes(action)){const actor=verify(req);assert(actor.role==='admin','เฉพาะผู้สอน',403);const result=await updateWheel(code,draft=>mutateWheel(draft,action,data,actor,Date.now()));return send(200,{...result.result,state:result.wheel.public,serverNow:Date.now()});}
