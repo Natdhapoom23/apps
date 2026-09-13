@@ -3,35 +3,26 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f7f8fa">
-  <meta name="description" content="รวมเกมและกิจกรรมสำหรับเรียนรู้การทำงานกับ AI ผ่านการลงมือทำ">
-  <title>AI Playground — เรียนรู้ AI ผ่านการลงมือเล่น</title>
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="รวมแอป เครื่องมือ เกม และกิจกรรมไว้ในที่เดียว">
+  <title>Apps — รวมแอปและกิจกรรม</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
   <script src="activities.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 <body>
-  <a class="skip-link" href="#activities">ข้ามไปยังกิจกรรม</a>
-  <div class="shell">
-    <header class="site-header">
-      <a class="brand" href="./" aria-label="AI Playground หน้าแรก"><span class="brand-mark" aria-hidden="true">ai<span>✳</span></span><span>AI Playground</span></a>
-      <span class="header-note">SMART WORKING WITH AI</span>
-    </header>
-    <main>
-      <section class="intro" aria-labelledby="page-title">
-        <div class="eyebrow"><span aria-hidden="true">✳</span> LEARN. PLAY. EXPLORE.</div>
-        <h1 id="page-title">รู้จัก AI ให้มากขึ้น<br>ผ่านการ<span class="highlight">ลงมือเล่น<span class="accent-dot">.</span></span></h1>
-        <p>พื้นที่รวมเกมและกิจกรรม ที่ชวนคุณทดลอง ตั้งคำถาม<br class="desktop-break"> และค้นพบวิธีทำงานกับ AI ไปด้วยกัน</p>
-      </section>
-      <section id="activities" class="activities" aria-labelledby="activities-title">
-        <div class="section-heading"><div><h2 id="activities-title">เลือกกิจกรรมของคุณ</h2><p>เริ่มจากความสงสัย แล้วเรียนรู้ไปด้วยกัน</p></div><span class="activity-count" id="activity-count"></span></div>
-        <div class="activity-grid" id="activity-grid"></div>
-        <noscript><p>กรุณาเปิด JavaScript เพื่อแสดงรายการกิจกรรม</p></noscript>
-      </section>
-      <aside class="closing-note"><span aria-hidden="true">↗</span><p>การเรียนรู้ที่ดี เริ่มจากการได้ลอง<span>กิจกรรมใหม่ ๆ จะถูกเพิ่มเข้ามาที่นี่</span></p></aside>
+  <a class="skip-link" href="#activities">ข้ามไปยังแอป</a>
+  <aside class="sidebar"><a class="logo" href="./" aria-label="Apps หน้าแรก">a<span>.</span></a><a class="home" href="./" aria-label="แอปทั้งหมด" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg></a></aside>
+  <div class="workspace">
+    <header class="topbar"><a class="mobile-logo" href="./">apps<span>.</span></a><label class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><input id="search" type="search" placeholder="ค้นหาแอป เครื่องมือ หรือกิจกรรม" aria-label="ค้นหาแอป เครื่องมือ หรือกิจกรรม" autocomplete="off"></label><span class="wordmark">apps<span>.</span></span></header>
+    <main id="activities">
+      <div class="browse-bar"><nav id="categories" class="categories" aria-label="หมวดหมู่แอป"></nav><span id="activity-count" class="count" role="status" aria-live="polite"></span></div>
+      <h1 class="sr-only">แอปและกิจกรรมทั้งหมด</h1>
+      <div class="activity-grid" id="activity-grid"></div>
+      <div id="empty" class="empty" hidden><h2>ไม่พบแอปที่ค้นหา</h2><p>ลองใช้คำอื่น หรือเลือกหมวดหมู่ทั้งหมด</p><button id="reset" type="button">แสดงทั้งหมด</button></div>
+      <noscript><p>กรุณาเปิด JavaScript เพื่อแสดงรายการแอป</p></noscript>
     </main>
-    <footer><span>AI Playground</span><span>พื้นที่เล็ก ๆ สำหรับการเรียนรู้ที่ไม่หยุดนิ่ง</span></footer>
   </div>
 </body>
 </html>
