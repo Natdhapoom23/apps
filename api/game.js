@@ -2,7 +2,7 @@ import QRCode from 'qrcode';
 import { randomBytes } from 'node:crypto';
 import { configured, demo, readRoom, readPublic, listRooms, createRoom, updateRoom, takeLimit, checkRules, getAdminPassword, setAdminPassword } from '../lib/store.mjs';
 import { newRoom, publicState, mutate, id, assert, GameError } from '../lib/engine.mjs';
-import { password, same, sign, verify, digest } from '../lib/auth.mjs';
+import { same, sign, verify, digest } from '../lib/auth.mjs';
 export default async function handler(req,res) {
   res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','application/json; charset=utf-8');res.setHeader('X-Content-Type-Options','nosniff');
   const send=(code,data)=>{res.statusCode=code;res.end(JSON.stringify(data));};
