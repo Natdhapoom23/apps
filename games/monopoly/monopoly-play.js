@@ -18,8 +18,8 @@ function render(){
   for(let j=0;j<count;j++){
    const index=offset+j,e=node('div','space'),step=86/count;
    const coords=side===0?[j*step,0,step,14]:side===1?[86,j*step,14,step]:side===2?[100-(j+1)*step,86,step,14]:[0,100-(j+1)*step,14,step];
-   ['left','top','width','height'].forEach((k,i)=>e.style[k]=`${coords[i]}%`);e.style.setProperty('--stripe',colors[side]);
-   e.append(node('span','',index===0?'Start/Finish':index+1),node('span','secret',index===0?'🏁':'?'));if(index===0)e.classList.add('start-space');const tokens=node('div','tokens');
+   ['left','top','width','height'].forEach((k,i)=>e.style[k]=`${coords[i]}%`);e.style.setProperty('--stripe',colors[index%colors.length]);e.style.setProperty('--tile-color',['#fff0dc','#e0eefb','#f4e4f5','#e3f2dc'][index%4]);
+   e.append(node('span','space-number',index===0?'Start/Finish':index+1));if(index===0)e.append(node('span','finish-flag','🏁'));if(index===0)e.classList.add('start-space');const tokens=node('div','tokens');
    players.forEach((p,i)=>{if((positions[p.id]??p.position)===index+1){const t=node('span','token',i+1);t.style.background=colors[i%colors.length];t.title=p.name;tokens.append(t);}});e.append(tokens);tiles.push(e);
   }offset+=count;
  }
@@ -27,8 +27,8 @@ function render(){
 }
 async function playResult(result){
  animating=true;positions[result.player]=result.from;render();$('#roll').classList.add('rolling');
- for(let i=0;i<10;i++){ $('#dice').textContent=String.fromCodePoint(0x2680+i%6);await delay(90); }
- $('#roll').classList.remove('rolling');$('#dice').textContent=String.fromCodePoint(0x2680+result.roll-1);
+ await delay(1400);
+ $('#roll').classList.remove('rolling');$('#dice').style.transform=['rotateX(0deg) rotateY(0deg)','rotateX(0deg) rotateY(-90deg)','rotateX(-90deg) rotateY(0deg)','rotateX(90deg) rotateY(0deg)','rotateX(0deg) rotateY(90deg)','rotateX(0deg) rotateY(180deg)'][result.roll-1];$('#roll').setAttribute('aria-label',`ทอยลูกเต๋า · ล่าสุด ${result.roll} แต้ม`);await delay(350);
  for(let i=1;i<=(result.steps??result.roll);i++){positions[result.player]=(result.from-1+i)%state.spaces.length+1;render();await delay(180);}
  const space=state.spaces[result.spaceId-1];$('#landing-number').textContent=`${result.name} · ช่อง ${result.spaceId}`;$('#landing-title').textContent=state.winner?`🏆 ${state.winner.name} ชนะ!`:space?.title||'เปิดป้าย';$('#landing-text').textContent=result.message;$('#landing-effect').textContent=state.winner?'เดินครบหนึ่งรอบถึง Start/Finish เป็นคนแรก':`${result.to!==result.spaceId?`ย้ายไปช่อง ${result.to} · `:''}คะแนน ${space?.points||0}`;
  await new Promise(resolve=>{const dialog=$('#landing');dialog.addEventListener('close',resolve,{once:true});$('#continue').onclick=()=>dialog.close();dialog.showModal();});
