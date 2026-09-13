@@ -15,5 +15,17 @@ window.ACTIVITIES = [
     coverLabel: "HUMAN\nOR AI?",
     coverNote: "มองให้ดี แล้วลองทาย",
     theme: "lime"
+  },
+  {
+    title: "เปิดแผ่นป้าย",
+    description: "เลือกหมายเลข เปิดข้อความหรือรูปภาพทีละแผ่น พร้อมดูผลพร้อมกันทั้งห้อง",
+    category: "เกมกิจกรรม",
+    format: "ผู้บรรยายสร้างห้องและเตรียมแผ่นป้าย",
+    image: "",
+    imageAlt: "",
+    url: "./games/board/",
+    coverLabel: "OPEN\nTHE BOARD",
+    coverNote: "เลือกเลข แล้วเปิดดู",
+    theme: "blue"
   }
 ];
