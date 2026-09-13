@@ -27,5 +27,5 @@ window.ACTIVITIES = [
     coverLabel: "OPEN\nTHE BOARD",
     coverNote: "เลือกเลข แล้วเปิดดู",
     theme: "blue"
-  }  ,{title:"วงล้อเสี่ยงโชค",description:"เพิ่มตัวเลือก หมุนสุ่ม และประกาศผลพร้อมกันทั้งห้อง",category:"เกมกิจกรรม",format:"ตั้งค่าได้โดยผู้สอน",image:"",url:"./games/wheel/",coverLabel:"LUCKY\nWHEEL",coverNote:"หมุนแล้วลุ้นผล",theme:"peach"}
+  }  ,{title:"วงล้อเสี่ยงโชค",description:"เพิ่มตัวเลือก หมุนสุ่ม และประกาศผลพร้อมกันทั้งห้อง",category:"เกมกิจกรรม",format:"ตั้งค่าได้โดยผู้สอน",image:"",url:"./games/wheel/",coverLabel:"LUCKY\nWHEEL",coverNote:"หมุนแล้วลุ้นผล",theme:"peach"}, {title:"เกมเศรษฐี",description:"ทอยลูกเต๋า เดินบนกระดาน และเจอเงื่อนไขที่ผู้สอนออกแบบเอง",category:"เกมกิจกรรม",format:"ปรับแต่งช่องและกติกาได้",image:"",url:"./games/monopoly/",coverLabel:"MONOPOLY",coverNote:"ทอย เดิน ลุ้น",theme:"lime"}
 ];
