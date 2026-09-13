@@ -42,7 +42,7 @@ export function subscribe(code,c,onState){
 }
 export function secondsLeft(s){const r=s?.round;return r?Math.max(0,Math.ceil((r.deadline-now())/1000)):0;}
 export const formatMs=ms=>ms===null||ms===undefined?'—':`${(ms/1000).toFixed(2)} วินาที`;
-export function scoreList(container,rows,group=false,limit=10){container.replaceChildren();if(!rows.length){container.append(node('p','muted','ยังไม่มีผู้เข้าร่วม'));return;}rows.slice(0,limit).forEach((p,i)=>{const row=node('div','rank-row');row.append(node('span','rank-number',String(i+1)));const name=node('div','rank-name');name.append(node('strong','',group?p.name:p.name),node('small','muted',group?`${p.members} คน · คะแนนเฉลี่ย`:`${p.group} · ถูก ${p.correct} ข้อ`));row.append(name,node('strong','rank-score',p.score.toLocaleString()));container.append(row);});}
+export function scoreList(container,rows=[],group=false,limit=10){rows ||= [];container.replaceChildren();if(!rows.length){container.append(node('p','muted','ยังไม่มีผู้เข้าร่วม'));return;}rows.slice(0,limit).forEach((p,i)=>{const row=node('div','rank-row');row.append(node('span','rank-number',String(i+1)));const name=node('div','rank-name');name.append(node('strong','',group?p.name:p.name),node('small','muted',group?`${p.members} คน · คะแนนเฉลี่ย`:`${p.group} · ถูก ${p.correct} ข้อ`));row.append(name,node('strong','rank-score',p.score.toLocaleString()));container.append(row);});}
 export function csvDownload(room){
   const rows=[['ชื่อ','กลุ่ม','คะแนน','ตอบถูก','จำนวนเปลี่ยนคำตอบ','เวลาตอบเฉลี่ย (ms)']];
   for(const p of room.leaderboard)rows.push([p.name,p.group,p.score,p.correct,p.changes,p.averageMs??'']);
