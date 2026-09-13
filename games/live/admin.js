@@ -16,7 +16,7 @@ function optionChoices(value){const options=$('#q-options').value.split('\n').ma
 function updateQuestionPreview(){const image=$('#q-image').value.trim(),preview=$('#q-preview');preview.hidden=!image;if(image)preview.src=image;}
 function editQuestion(q){editing=q?.id||null;$('#q-title').value=q?.title||'';$('#q-image').value=q?.image||'';updateQuestionPreview();$('#q-source').value=q?.source||'';$('#q-options').value=(q?.options||['ใช่','ไม่ใช่']).join('\n');$('#q-seconds').value=q?.seconds||30;$('#q-explanation').value=q?.explanation||'';optionChoices(q?.correct??null);$('#delete-question').hidden=!q;$('#question-error').textContent='';$('#question-dialog').showModal();}
 $('#login-form').onsubmit=e=>{e.preventDefault();run(async()=>{const r=await api('login',{password:$('#password').value});localStorage.setItem('workshop-admin',r.token);$('#password').value='';$('#notice').hidden=true;await rooms();});};
-$('#password-form').onsubmit=e=>{e.preventDefault();run(async()=>{await api('changePassword',{currentPassword:$('#current-password').value,newPassword:$('#new-password').value,confirmPassword:$('#confirm-password').value},auth());e.target.reset();notify('เปลี่ยนรหัสผ่านแล้ว กรุณาใช้รหัสใหม่ในการเข้าสู่ระบบครั้งถัดไป');});};
+
 $('#logout').onclick=logout;$('#back-rooms').onclick=()=>run(rooms);
 $('#next-question').onclick=()=>run(()=>command('start',{next:true}));
 $('#create').onclick=()=>run(async()=>{const r=await api('create',{},auth());await openRoom(r.room.code);});
