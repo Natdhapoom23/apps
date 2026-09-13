@@ -10,3 +10,9 @@
 html:has(body.display-body){background:#111a17}
 body.display-body{min-height:100vh;background:#111a17!important}
 body.display-body:fullscreen{min-height:100vh;overflow:auto}
+/* Presentation layout: center and scale the stage to use the whole screen. */
+.display-shell{min-height:calc(100vh - 80px);display:flex;align-items:center}
+.display-layout{width:100%;margin:0 auto}
+.stage{min-height:clamp(650px,72vh,980px)}
+@media (min-width:1101px){.display-body:fullscreen .display-shell{padding:4vh 4vw}.display-body:fullscreen .display-layout{width:min(1800px,94vw);gap:clamp(30px,3vw,64px)}.display-body:fullscreen .stage{padding:clamp(32px,3vw,64px);min-height:clamp(700px,78vh,1100px)}.display-body:fullscreen .stage h1{font-size:clamp(40px,4vw,72px)}.display-body:fullscreen .display-options{gap:18px}.display-body:fullscreen .display-option{padding:20px;font-size:clamp(18px,1.4vw,26px)}}
+@media(max-width:800px){.display-shell{min-height:calc(100vh - 70px)}.stage{min-height:0}}
