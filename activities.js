@@ -11,7 +11,7 @@ window.ACTIVITIES = [
     format: "เล่นพร้อมกันในห้องอบรม",
     image: "",
     imageAlt: "",
-    url: "",
+    url: "./games/live/",
     coverLabel: "HUMAN\nOR AI?",
     coverNote: "มองให้ดี แล้วลองทาย",
     theme: "lime"
