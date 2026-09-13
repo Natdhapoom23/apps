@@ -1,6 +1,6 @@
 import QRCode from 'qrcode';
 import { randomBytes } from 'node:crypto';
-import { configured, demo, readRoom, readPublic, listRooms, createRoom, updateRoom, takeLimit, checkRules } from '../lib/store.mjs';
+import { configured, demo, readRoom, readPublic, listRooms, createRoom, updateRoom, takeLimit, checkRules, getAdminPassword, setAdminPassword } from '../lib/store.mjs';
 import { newRoom, publicState, mutate, id, assert, GameError } from '../lib/engine.mjs';
 import { password, same, sign, verify, digest } from '../lib/auth.mjs';
 export default async function handler(req,res) {
@@ -41,9 +41,19 @@ export default async function handler(req,res) {
     if(action==='login') {
       const ip=String(req.headers['x-forwarded-for']||req.socket?.remoteAddress||'unknown').split(',')[0];
       assert(await takeLimit(`login-${digest(ip)}`,20,15*60000),'ลองเข้าสู่ระบบหลายครั้งเกินไป รอ 15 นาที',429);
-      assert(password().length>=8,'ADMIN_PASSWORD ต้องยาวอย่างน้อย 8 ตัวอักษร',503);
-      assert(same(data.password,password()),'รหัสผู้สอนไม่ถูกต้อง',401);
+      const currentPassword=await getAdminPassword();
+      assert(currentPassword.length>=8,'รหัสผู้สอนต้องยาวอย่างน้อย 8 ตัวอักษร',503);
+      assert(same(data.password,currentPassword),'รหัสผู้สอนไม่ถูกต้อง',401);
       return send(200,{token:sign({role:'admin'}),demo,serverNow:Date.now()});
+    }
+    if(action==='changePassword') {
+      const actor=verify(req);assert(actor.role==='admin','เฉพาะผู้สอน',403);
+      const currentPassword=await getAdminPassword();
+      assert(same(data.currentPassword,currentPassword),'รหัสผ่านเดิมไม่ถูกต้อง',401);
+      assert(typeof data.newPassword==='string'&&data.newPassword.length>=8,'รหัสผ่านใหม่ต้องมีอย่างน้อย 8 ตัวอักษร',400);
+      assert(data.newPassword===data.confirmPassword,'ยืนยันรหัสผ่านใหม่ไม่ตรงกัน',400);
+      await setAdminPassword(data.newPassword);
+      return send(200,{ok:true});
     }
     if(action==='create') {
       const actor=verify(req);assert(actor.role==='admin','เฉพาะผู้สอน',403);
