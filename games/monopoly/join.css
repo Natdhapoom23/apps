@@ -1,1 +1,23 @@
 .join-main{max-width:620px;margin:30px auto;padding:0 20px 50px}.join-main>a{display:inline-block;margin-bottom:35px}.join-card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:28px;margin-top:18px}.join-card h1{margin-bottom:10px}.join-card>p{color:var(--muted)}.join-card input,.join-card select{background:#fafbfa;border:1px solid var(--line);border-radius:10px;padding:13px;font-size:17px}.join-card button.primary{width:100%;background:#1c2923;color:#fff;border:0;border-radius:10px;padding:14px;font-weight:600}.player-head{display:flex;justify-content:space-between;align-items:flex-start;gap:15px}.player-head h1{margin:4px 0 0;font-size:30px}.join-status{margin-top:22px;padding:18px;border-radius:12px;background:#edf4df;color:#334c2e;font-size:18px}.mobile-options{display:grid;gap:12px;margin-top:18px}.mobile-options button{width:100%;text-align:left;background:#e4efd2;border:2px solid transparent;border-radius:12px;padding:16px;font-size:18px;cursor:pointer}.mobile-options button:hover{border-color:#718d3d}.mobile-timer{font-weight:700;color:#9b5d26;text-align:right}.secondary{border:1px solid var(--line);background:#fff;border-radius:9px;padding:10px 14px;cursor:pointer}@media(max-width:480px){.join-main{padding:0 15px 35px}.join-card{padding:22px}.player-head h1{font-size:25px}}
+
+/* Explicit foregrounds prevent the shared white button text leaking onto light answers. */
+:root{color-scheme:light;--line:#b7c5d5;--muted:#46566b}
+body{background:#eaf0f7;color:#15263d}
+.join-main>a{color:#164da5;font-weight:600}
+.join-card{color:#15263d;box-shadow:0 8px 28px #18345112}
+.join-card .muted,.join-card .eyebrow{color:#46566b}
+.join-card input,.join-card select{width:100%;background:#fff;color:#15263d;border-color:#91a4bb;font:inherit;font-size:17px}
+.join-card input::placeholder{color:#596b80;opacity:1}
+.join-card button.primary{background:#164da5;color:#fff}
+.join-card button.secondary{color:#203b60;background:#fff;border-color:#91a4bb}
+.mobile-options button{color:#142d50;background:#eaf2ff;border:2px solid #9db8de;font-weight:600;line-height:1.5;min-height:58px;overflow-wrap:anywhere}
+.mobile-options button:hover:not(:disabled){color:#102442;background:#d8e8ff;border-color:#245aa8}
+.mobile-options button:active:not(:disabled){background:#bdd8ff}
+.mobile-options button:disabled,.join-card input:disabled{opacity:1;color:#42536a;-webkit-text-fill-color:#42536a;background:#e3e9f0;border-color:#b2bfce;cursor:default}
+.join-card :is(button,input,select):focus-visible{outline:3px solid #1b60bd;outline-offset:3px}
+.join-status{color:#183d30;background:#e2f3e9;border:1px solid #7ba98f}
+.mobile-timer{color:#8b3c08;font-size:20px}
+.join-main .notice{color:#17452c;background:#e0f3e6;border:1px solid #81ae91}
+.join-main .notice.bad{color:#8c2030;background:#ffe9ed;border-color:#d999a3}
+.player-head>div{min-width:0}.player-head h1{overflow-wrap:anywhere;font-size:clamp(22px,5vw,30px)}
+.player-head #leave{flex-shrink:0}

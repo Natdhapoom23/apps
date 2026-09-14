@@ -1,15 +1,33 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {existsSync} from 'node:fs';
 import {newMonopoly,mutateMonopoly,monopolyPublic,normalize} from '../lib/monopoly.mjs';
 const admin={role:'admin'};
-test('AI starter bank has 30 valid questions and new rooms can roll immediately',()=>{
+test('existing rooms gain ten image questions once, preserving progress and local assets',()=>{
+  const g=newMonopoly('MIGRAT',0);
+  g.questionBank=g.questionBank.filter(q=>!q.image);delete g.humanAiQuestionsVersion;
+  g.questionOrder=g.questionBank.map(q=>q.id);g.questionCursor=4;
+  g.players.team0.position=8;g.players.team0.points=150;g.turn=2;
+  normalize(g);normalize(g);
+  assert.equal(g.questionBank.length,40);assert.equal(g.questionOrder.length,40);
+  assert.equal(g.questionCursor,4);assert.equal(g.turn,2);
+  assert.equal(g.players.team0.position,8);assert.equal(g.players.team0.points,150);
+  for(const q of g.questionBank.filter(q=>q.image))assert.ok(existsSync(new URL('..'+q.image,import.meta.url)),q.image);
+  const count=g.questionBank.find(q=>q.id==='human-ai-q25');
+  assert.equal(count.type,'image-count');assert.equal(count.answer,5);
+  g.lastRoll={id:'image-round',phase:'question',question:count};
+  const publicQuestion=monopolyPublic(g).lastRoll.question;
+  assert.equal(publicQuestion.answer,undefined);assert.equal(publicQuestion.explanation,undefined);
+  assert.ok(publicQuestion.image);
+});
+test('AI starter bank has 40 valid questions and new rooms can roll immediately',()=>{
   const g=newMonopoly('START1',0);
-  assert.equal(g.questionBank.length,30);
-  assert.equal(new Set(g.questionBank.map(q=>q.id)).size,30);
-  assert.deepEqual(new Set(g.questionBank.map(q=>q.type)),new Set(['choice','boolean','number']));
+  assert.equal(g.questionBank.length,40);
+  assert.equal(new Set(g.questionBank.map(q=>q.id)).size,40);
+  assert.deepEqual(new Set(g.questionBank.map(q=>q.type)),new Set(['choice','boolean','number','image-count']));
   for(const q of g.questionBank){
-    assert.ok(q.title&&q.seconds>=8&&q.seconds<=15);
-    if(q.type==='choice')assert.ok(q.options.length===4&&q.correct>=0&&q.correct<4);
+    assert.ok(q.title&&q.seconds>=5&&q.seconds<=30);
+    if(q.type==='choice')assert.ok(q.options.length>=2&&q.options.length<=4&&q.correct>=0&&q.correct<q.options.length);
     else assert.equal(typeof q.answer,q.type==='boolean'?'boolean':'number');
   }
   mutateMonopoly(g,'monopolyRoll',{}, {},1);
@@ -17,7 +35,7 @@ test('AI starter bank has 30 valid questions and new rooms can roll immediately'
 });
 test('empty legacy rooms receive starter questions without replacing custom banks',()=>{
   const g=newMonopoly('OLD123',0);g.questionBank=[];delete g.questionsConfigured;
-  normalize(g);assert.equal(g.questionBank.length,30);
+  normalize(g);assert.equal(g.questionBank.length,40);
   const ids=g.questionBank.map(q=>q.id);normalize(g);assert.deepEqual(g.questionBank.map(q=>q.id),ids);
   g.questionBank=[{id:'custom',type:'number',title:'ของผู้สอน',answer:1,seconds:10}];
   normalize(g);assert.equal(g.questionBank[0].id,'custom');assert.equal(g.questionBank.length,1);

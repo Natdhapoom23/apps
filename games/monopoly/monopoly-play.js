@@ -76,14 +76,15 @@ function render(){
   rollLabel.textContent=pending?'กำลังทอย…':r?.phase==='landing'?`${r.roll} แต้ม`:'ทอยลูกเต๋า';
   $('#players').replaceChildren(...ps.map((p,i)=>{const e=node('div','score-chip',`${i+1}. ${p.name} · ${p.points||0} คะแนน`);e.style.setProperty('--team-color',colors[i%colors.length]);return e;}));
   const leaders=(state.participants||[]).slice().sort((a,b)=>(b.score||0)-(a.score||0)).slice(0,5);
-  leaderboard.replaceChildren(...leaders.map((p,i)=>node('span','leader-row',`${i===0?'👑':i+1} ${p.name} · ${p.score||0}`)));
+  const teamName=id=>ps.find(p=>p.id===id)?.name||'ไม่ระบุกลุ่ม';
+  leaderboard.replaceChildren(...leaders.map((p,i)=>node('span','leader-row',`${i===0?'👑':i+1} ${p.name} (${teamName(p.teamId)}) · ${p.score||0}`)));
   buildBoard();const q=r?.question;$('#question-card').hidden=!q||r.phase!=='question';
   if(q&&r.phase==='question'){
     if(q.image&&$('#question-image').getAttribute('src')!==q.image)$('#question-image').src=q.image;
     $('#question-image').hidden=!q.image;$('#question-title').textContent=q.title;
     choices.replaceChildren(...(q.type==='boolean'?['ถูก','ผิด']:q.options||[]).map((x,i)=>node('div','projector-option',`${i+1}. ${x}`)));
   }
-  $('#hero').textContent=r?.hero?`ฮีโร่ล่าสุด: ${r.hero.name} · +${r.hero.score} คะแนน`:'';
+  $('#hero').textContent=r?.hero?`ฮีโร่ล่าสุด: ${r.hero.name} (${teamName(r.hero.teamId)}) · +${r.hero.score} คะแนน`:'';
   $('#message').className=failure?'notice bad':'';
   $('#message').textContent=failure||(r?.phase==='landing'?'กำลังทอยและเดินเบี้ย…':r?.phase==='question'?'ส่งคำตอบจากมือถือได้เลย':state.winner?'จบเกม':r?.phase==='resolved'?(r.message||'จบเทิร์น · ทีมถัดไปทอยได้เลย'):'กดลูกเต๋า หรือ Space / Enter / R เพื่อทอย');paint();
 }

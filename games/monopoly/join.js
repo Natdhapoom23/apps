@@ -24,7 +24,7 @@ function render() {
   }
   $('#join-panel').hidden = true; $('#player-panel').hidden = false;
   const team = state.players?.find(t => t.id === participant.teamId);
-  $('#player-team').textContent = team?.name || 'ทีมของคุณ';
+  $('#player-team').textContent = `${participant.name} · ${team?.name || 'ไม่ระบุกลุ่ม'}`;
   const r = state.lastRoll;
   const active = r?.phase === 'question' && now() < r.deadline;
   $('#question-panel').hidden = !active;
@@ -39,12 +39,31 @@ function render() {
       options.dataset.round = r.id; options.replaceChildren();
       if (r.question.type === 'choice') r.question.options.forEach((x, i) => { const b = document.createElement('button'); b.textContent = x; b.disabled = busy || answerRound === r.id; b.onclick = () => send({choice:i}, r.id); options.append(b); });
       else if (r.question.type === 'boolean') [true,false].forEach(value=>{const b=document.createElement('button');b.textContent=value?'ถูก':'ผิด';b.onclick=()=>send({answer:value},r.id);options.append(b);});
-      else { const input=document.createElement('input'); input.className='mobile-answer'; input.type=r.question.type==='number'||r.question.type==='image-count'?'number':'text'; input.inputMode=input.type==='number'?'numeric':'text'; input.placeholder='พิมพ์คำตอบ'; input.disabled=busy||answerRound===r.id; const b=document.createElement('button'); b.textContent='ส่งคำตอบ'; b.disabled=input.disabled; b.onclick=()=>send({answer:input.value},r.id); options.append(input,b); }
+      else {
+        const input=document.createElement('input');
+        input.className='mobile-answer';
+        input.type=r.question.type==='number'||r.question.type==='image-count'?'number':'text';
+        input.inputMode=input.type==='number'?'numeric':'text';
+        input.enterKeyHint='send';
+        input.placeholder='พิมพ์คำตอบ แล้วกด Enter';
+        input.setAttribute('aria-label','คำตอบของคุณ');
+        input.disabled=busy||answerRound===r.id;
+        const submit=()=>{
+          if(input.disabled||busy||answerRound===r.id)return;
+          if(!input.value.trim()||!input.checkValidity()){notice('กรุณากรอกคำตอบให้ครบก่อนส่ง',true);input.focus();return;}
+          send({answer:input.value},r.id);
+        };
+        input.onkeydown=e=>{
+          if(e.key==='Enter'&&!e.isComposing&&e.keyCode!==229){e.preventDefault();if(!e.repeat)submit();}
+        };
+        const b=document.createElement('button');b.type='button';b.textContent='ส่งคำตอบ';b.disabled=input.disabled;b.onclick=submit;
+        options.append(input,b);
+      }
       }
       options.querySelectorAll('button,input').forEach(el=>el.disabled=busy||answerRound===r.id);
       $('#timer').textContent = `เหลือ ${Math.max(0, Math.ceil((r.deadline - now()) / 1000))} วินาที`;
     }
-  } else { $('#status').textContent = r.hero ? `เฉลยแล้ว · ฮีโร่คือ ${r.hero.name}` : 'หมดเวลา ไม่มีคำตอบถูก'; }
+  } else { $('#status').textContent = r.hero ? `เฉลยแล้ว · ฮีโร่คือ ${r.hero.name} (${state.players?.find(t=>t.id===r.hero.teamId)?.name || 'ไม่ระบุกลุ่ม'})` : 'หมดเวลา ไม่มีคำตอบถูก'; }
 }
 async function load() {
   try { const r = await api('monopolyPublic', { room: code }, '', true); state = r.state; if (!participant && localStorage.getItem(tokenKey)) { const me = await api('monopolyMe', { room: code }, localStorage.getItem(tokenKey), true); participant = me.participant; state = me.state; } render(); }
