@@ -2,9 +2,11 @@ import { api, roomCode, now } from '../live/shared.js';
 const $ = s => document.querySelector(s), code = roomCode(), keyName = `monopoly-player-${code}`;
 let joinKey = localStorage.getItem(`${keyName}-join-key`);
 if (!joinKey) { joinKey = [...crypto.getRandomValues(new Uint8Array(16))].map(x => x.toString(16).padStart(2, '0')).join(''); localStorage.setItem(`${keyName}-join-key`, joinKey); }
-let state = null, participant = null, answerRound = null, busy = false;
+let state = null, participant = null, answerRound = null, busy = false, selectedIndex = null;
 const tokenKey = `${keyName}-token`;
 const notice = (message, bad = false) => { $('#notice').textContent = message; $('#notice').className = `notice${bad ? ' bad' : ''}`; $('#notice').hidden = false; };
+const countdown = document.createElement('div'); countdown.className='answer-countdown'; document.body.append(countdown);
+function showCountdown(){let n=3;countdown.textContent=n;countdown.classList.add('show');const timer=setInterval(()=>{n-=1;if(n<1){clearInterval(timer);countdown.classList.remove('show');}else countdown.textContent=n;},650);}
 const saveState = () => localStorage.setItem(tokenKey, participant ? (localStorage.getItem(tokenKey) || '') : '');
 function render() {
   if (!state) return;
@@ -37,8 +39,8 @@ function render() {
       const options = $('#options');
       if (options.dataset.round !== r.id) {
       options.dataset.round = r.id; options.replaceChildren();
-      if (r.question.type === 'choice') r.question.options.forEach((x, i) => { const b = document.createElement('button'); b.textContent = x; b.disabled = busy || answerRound === r.id; b.onclick = () => send({choice:i}, r.id); options.append(b); });
-      else if (r.question.type === 'boolean') [true,false].forEach(value=>{const b=document.createElement('button');b.textContent=value?'ถูก':'ผิด';b.onclick=()=>send({answer:value},r.id);options.append(b);});
+      if (r.question.type === 'choice') r.question.options.forEach((x, i) => { const b = document.createElement('button'); b.textContent = String.fromCharCode(65+i); b.title=x; b.setAttribute('aria-label',`${String.fromCharCode(65+i)}: ${x}`); b.onclick = () => { selectedIndex=i; b.classList.add('selected'); send({choice:i}, r.id); }; options.append(b); });
+      else if (r.question.type === 'boolean') [true,false].forEach((value,i)=>{const b=document.createElement('button');b.textContent=i?'B':'A';b.title=value?'ถูก':'ผิด';b.setAttribute('aria-label',`${b.textContent}: ${b.title}`);b.onclick=()=>{selectedIndex=i;b.classList.add('selected');send({answer:value},r.id);};options.append(b);});
       else {
         const input=document.createElement('input');
         input.className='mobile-answer';
@@ -70,7 +72,7 @@ async function load() {
   catch (e) { notice(e.message, true); }
 }
 async function send(answer, roundId) {
-  if (busy) return; busy = true; answerRound = roundId; render();
+  if (busy) return; busy = true; answerRound = roundId; showCountdown(); render();
   try { const r = await api('monopolyAnswer', { room: code, roundId, ...answer }, localStorage.getItem(tokenKey)); state = r.state; notice('ส่งคำตอบแล้ว'); }
   catch (e) { answerRound = null; notice(e.message, true); }
   finally { busy = false; render(); }

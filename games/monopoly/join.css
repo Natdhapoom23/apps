@@ -21,3 +21,12 @@ body{background:#eaf0f7;color:#15263d}
 .join-main .notice.bad{color:#8c2030;background:#ffe9ed;border-color:#d999a3}
 .player-head>div{min-width:0}.player-head h1{overflow-wrap:anywhere;font-size:clamp(22px,5vw,30px)}
 .player-head #leave{flex-shrink:0}
+.question-panel .eyebrow,#question{display:none}
+.mobile-options button{display:grid;place-items:center;text-align:center;font-size:clamp(28px,9vw,54px);font-weight:800;min-height:90px}
+.mobile-options button::after{content:'แตะเพื่อตอบ';display:block;font-size:12px;font-weight:600;opacity:.65}
+.mobile-options button.selected{color:#fff;background:#165bb5;border-color:#0d3977;box-shadow:0 0 0 4px #8cb9ff,0 8px 0 #0d3977;transform:translateY(-2px)}
+.mobile-options input{font-size:22px;padding:16px;color:#142d50;background:#fff;border:2px solid #668dbd}
+.mobile-options input+button{font-size:18px;min-height:54px}
+.answer-countdown{position:fixed;inset:0;z-index:10;display:grid;place-items:center;background:#10284dcc;color:#fff;font-size:clamp(120px,35vw,280px);font-weight:900;opacity:0;pointer-events:none;transform:scale(1.35);transition:opacity .18s,transform .18s}
+.answer-countdown.show{opacity:1;transform:scale(1);animation:countdown-pulse .65s ease-in-out infinite alternate}
+@keyframes countdown-pulse{to{transform:scale(1.08)}}
