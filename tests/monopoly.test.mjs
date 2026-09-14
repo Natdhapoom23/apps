@@ -1,7 +1,27 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {newMonopoly,mutateMonopoly,monopolyPublic} from '../lib/monopoly.mjs';
+import {newMonopoly,mutateMonopoly,monopolyPublic,normalize} from '../lib/monopoly.mjs';
 const admin={role:'admin'};
+test('AI starter bank has 30 valid questions and new rooms can roll immediately',()=>{
+  const g=newMonopoly('START1',0);
+  assert.equal(g.questionBank.length,30);
+  assert.equal(new Set(g.questionBank.map(q=>q.id)).size,30);
+  assert.deepEqual(new Set(g.questionBank.map(q=>q.type)),new Set(['choice','boolean','number']));
+  for(const q of g.questionBank){
+    assert.ok(q.title&&q.seconds>=8&&q.seconds<=15);
+    if(q.type==='choice')assert.ok(q.options.length===4&&q.correct>=0&&q.correct<4);
+    else assert.equal(typeof q.answer,q.type==='boolean'?'boolean':'number');
+  }
+  mutateMonopoly(g,'monopolyRoll',{}, {},1);
+  assert.ok(g.lastRoll.question);assertFirebaseSafe(g);
+});
+test('empty legacy rooms receive starter questions without replacing custom banks',()=>{
+  const g=newMonopoly('OLD123',0);g.questionBank=[];delete g.questionsConfigured;
+  normalize(g);assert.equal(g.questionBank.length,30);
+  const ids=g.questionBank.map(q=>q.id);normalize(g);assert.deepEqual(g.questionBank.map(q=>q.id),ids);
+  g.questionBank=[{id:'custom',type:'number',title:'ของผู้สอน',answer:1,seconds:10}];
+  normalize(g);assert.equal(g.questionBank[0].id,'custom');assert.equal(g.questionBank.length,1);
+});
 function assertFirebaseSafe(value,path='game'){
   assert.notEqual(value,undefined,`${path} must not contain undefined`);
   if(value&&typeof value==='object')for(const [key,child] of Object.entries(value))assertFirebaseSafe(child,`${path}.${key}`);
@@ -25,7 +45,7 @@ test('roll, automatic question and first answer survive Firebase empty-field rem
   assert.equal(r.phase,'resolved');assert.equal(g.turn,1);assertFirebaseSafe(g);
 });
 test('empty question bank reports a useful error without moving a pawn',()=>{
-  const g=newMonopoly('EMPTY1',0);
+  const g=newMonopoly('EMPTY1',0);g.questionBank=[];
   assert.throws(()=>mutateMonopoly(g,'monopolyRoll',{}, {},100),/ยังไม่มีคำถาม/);
   assert.equal(g.players.team0.position,1);assert.equal(g.lastRoll,undefined);
 });
