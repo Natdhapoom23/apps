@@ -1,3 +1,28 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&display=swap');
 *{box-sizing:border-box}body{margin:0;font-family:'Noto Sans Thai',sans-serif;background:#f5f7fb;color:#172033}main{max-width:1100px;margin:auto;padding:32px 20px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px}h1{margin:0;font-size:clamp(28px,5vw,48px)}button{border:0;border-radius:12px;padding:12px 18px;background:#172033;color:white;font:inherit;cursor:pointer}button.secondary{background:white;color:#172033;border:1px solid #d7dce7}.notice{padding:12px 16px;border-radius:12px;background:#fff1ed;color:#a33;margin:12px 0}.panel{background:#fff;border:1px solid #e2e6ef;border-radius:20px;padding:22px;box-shadow:0 10px 30px #1720330b}input,textarea{font:inherit;width:100%;border:1px solid #d7dce7;border-radius:10px;padding:10px;margin-top:6px}label{display:block;margin:10px 0}.rooms{display:grid;gap:12px}.room{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px;border:1px solid #e2e6ef;border-radius:14px}.tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.tile{min-height:130px;background:linear-gradient(145deg,#536dfe,#8f5cff);font-size:32px;font-weight:700;display:grid;place-items:center;border-radius:16px;transition:.15s filter}.tile:hover{filter:brightness(1.08)}.tile.opened{background:#fff;color:#172033;border:2px solid #9aa6bd;font-size:16px;text-align:left;padding:14px;display:block}.tile.opened img{width:100%;max-height:150px;object-fit:cover;border-radius:9px;margin-top:8px}.sub{color:#667085}.edit-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.edit-card{border:1px solid #e2e6ef;border-radius:14px;padding:14px}@media(max-width:650px){.tiles{grid-template-columns:repeat(3,1fr);gap:8px}.tile{min-height:90px;font-size:25px}.edit-grid{grid-template-columns:1fr}.room{align-items:flex-start;flex-direction:column}}
 .button{display:inline-block;text-decoration:none}
+
+/* The play surface fills the viewport; admin forms retain their original layout. */
+.board-play{background:radial-gradient(ellipse at top left,#e6eaff,transparent 55%),radial-gradient(ellipse at bottom right,#ede5ff,transparent 55%),#f5f7fb}
+.board-play main{max-width:none;min-height:100svh;min-height:100dvh;padding:clamp(12px,2vw,30px);display:flex;flex-direction:column;gap:18px}
+.board-play .top{margin:0;flex-shrink:0}.board-play .sub{margin:0}.board-play h1{font-size:clamp(24px,3.2vw,44px)}
+.board-controls{display:flex;align-items:center;gap:18px}.board-controls button{font-size:14px;white-space:nowrap}
+.board-play .tiles{flex:1;grid-template-rows:repeat(var(--rows,5),minmax(100px,1fr));gap:clamp(8px,1.2vw,18px)}
+.board-play .tile{position:relative;min-width:0;min-height:100px;padding:0;border:0;background:none;display:block;perspective:1100px;isolation:isolate;touch-action:manipulation;-webkit-tap-highlight-color:transparent;filter:none}
+.tile-tilt,.tile-flipper{display:block;position:relative;width:100%;height:100%;transform-style:preserve-3d}
+.tile-tilt{transform:rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg));transition:transform 100ms ease-out}
+.tile-flipper{transition:transform 420ms cubic-bezier(.2,.75,.25,1)}
+.board-play .tile.opened .tile-flipper{transform:rotateY(180deg)}
+.tile-face{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:18px;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
+.tile-front{background:radial-gradient(circle at var(--glow-x,30%) var(--glow-y,20%),#ffffff38,transparent 65%),linear-gradient(135deg,#4e64f4,#8750ed);color:#fff;box-shadow:0 6px 15px #5754be26,inset 0 1px 0 #ffffff55;border:1px solid #ffffff40}
+.tile-front::after{content:'';position:absolute;width:110px;height:110px;right:-35px;bottom:-50px;border:1px solid #ffffff25;border-radius:50%;box-shadow:0 0 0 22px #ffffff09}
+.tile-number{font-size:clamp(28px,3.2vw,56px);line-height:1.2;text-shadow:0 3px 10px #28207930}
+.tile-hint{font-size:11px;font-weight:400;opacity:.65}
+.tile-back{transform:rotateY(180deg);background:linear-gradient(145deg,#fff,#f3f0ff);border:1px solid #b2ace6;color:#24203f;box-shadow:0 5px 16px #3f358d12;text-align:center}
+.tile-text{font-size:clamp(14px,1.3vw,24px);line-height:1.4;font-weight:700;overflow:auto;max-height:100%;overflow-wrap:anywhere;white-space:pre-wrap;min-height:0}
+.board-play .tile.opened img,.board-play .tile img{width:auto;max-width:100%;height:auto;max-height:55%;min-height:0;object-fit:contain;margin:0;border-radius:8px}
+.board-play .tile img[hidden]{display:none}.tile-back .tile-hint{flex-shrink:0}
+.board-play .tile:focus-visible{outline:3px solid #3930ab;outline-offset:4px;border-radius:18px}
+.board-play .tile:active .tile-tilt{transform:scale(.97)}
+@media(max-width:650px){.board-play main{gap:12px}.board-play .top{gap:8px;align-items:flex-start}.board-controls{flex-direction:column;align-items:flex-end;gap:6px}.board-controls button{padding:8px;font-size:12px}.board-play .sub{font-size:12px}.board-play .tiles{grid-template-rows:repeat(var(--mobile-rows,9),minmax(90px,1fr))}.tile-face{border-radius:12px;padding:8px}.tile-hint{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.tile-tilt,.tile-flipper{transition:none}.board-play .tile .tile-tilt{transform:none}}
