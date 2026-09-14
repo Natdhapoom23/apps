@@ -25,23 +25,29 @@ function render() {
   $('#join-panel').hidden = true; $('#player-panel').hidden = false;
   const team = state.players?.find(t => t.id === participant.teamId);
   $('#player-team').textContent = team?.name || 'ทีมของคุณ';
-  const r = state.lastRoll, mine = r?.player === participant.teamId;
-  const active = mine && r?.phase === 'question' && Date.now() < r.deadline;
+  const r = state.lastRoll;
+  const active = r?.phase === 'question' && Date.now() < r.deadline;
   $('#question-panel').hidden = !active;
-  if (!r || !mine) { $('#status').textContent = state.winner ? `🏆 ${state.winner.name} ชนะเกม` : 'รอทีมของคุณทอยลูกเต๋า'; return; }
-  if (r.phase === 'landing') { $('#status').textContent = 'ทีมของคุณกำลังเดินไปยังช่อง...'; return; }
+  if (!r) { $('#status').textContent = state.winner ? `🏆 ${state.winner.name} ชนะเกม` : 'รอทีมของคุณทอยลูกเต๋า'; return; }
+  if (r.phase === 'landing') { $('#status').textContent = 'กำลังเดินเบี้ยบนจอหลัก...'; return; }
   if (r.phase === 'question') {
-    $('#status').textContent = active ? 'รีบเลือกคำตอบจากมือถือของคุณ' : 'หมดเวลาตอบแล้ว';
-    if (active) { $('#question').textContent = r.question.title; $('#options').replaceChildren(...r.question.options.map((x, i) => { const b = document.createElement('button'); b.textContent = x; b.disabled = busy || answerRound === r.id; b.onclick = () => send(i, r.id); return b; })); $('#timer').textContent = `เหลือ ${Math.max(0, Math.ceil((r.deadline - Date.now()) / 1000))} วินาที`; }
-  } else { $('#status').textContent = r.correct ? `ตอบถูก ได้ ${r.pointsAwarded || 0} คะแนน · เดินหน้าต่อ` : 'ตอบผิดหรือหมดเวลา · ถอยหลัง 1 ช่อง'; }
+    $('#status').textContent = active ? 'ดูคำถามบนจอหลัก แล้วส่งคำตอบของคุณ' : 'หมดเวลาตอบแล้ว';
+    if (active) {
+      $('#question').textContent = 'คำถามแสดงอยู่บนจอหลัก';
+      const options = $('#options'); options.replaceChildren();
+      if (r.question.type === 'choice') r.question.options.forEach((x, i) => { const b = document.createElement('button'); b.textContent = x; b.disabled = busy || answerRound === r.id; b.onclick = () => send({choice:i}, r.id); options.append(b); });
+      else { const input=document.createElement('input'); input.className='mobile-answer'; input.type=r.question.type==='number'||r.question.type==='image-count'?'number':'text'; input.inputMode=input.type==='number'?'numeric':'text'; input.placeholder='พิมพ์คำตอบ'; input.disabled=busy||answerRound===r.id; const b=document.createElement('button'); b.textContent='ส่งคำตอบ'; b.disabled=input.disabled; b.onclick=()=>send({answer:input.value},r.id); options.append(input,b); }
+      $('#timer').textContent = `เหลือ ${Math.max(0, Math.ceil((r.deadline - Date.now()) / 1000))} วินาที`;
+    }
+  } else { $('#status').textContent = r.hero ? `เฉลยแล้ว · ฮีโร่คือ ${r.hero.name}` : 'หมดเวลา ไม่มีคำตอบถูก'; }
 }
 async function load() {
   try { const r = await api('monopolyPublic', { room: code }, '', true); state = r.state; if (!participant && localStorage.getItem(tokenKey)) { const me = await api('monopolyMe', { room: code }, localStorage.getItem(tokenKey), true); participant = me.participant; state = me.state; } render(); }
   catch (e) { notice(e.message, true); }
 }
-async function send(choice, roundId) {
+async function send(answer, roundId) {
   if (busy) return; busy = true; answerRound = roundId; render();
-  try { const r = await api('monopolyAnswer', { room: code, roundId, choice }, localStorage.getItem(tokenKey)); state = r.state; notice('ส่งคำตอบแล้ว'); }
+  try { const r = await api('monopolyAnswer', { room: code, roundId, ...answer }, localStorage.getItem(tokenKey)); state = r.state; notice('ส่งคำตอบแล้ว'); }
   catch (e) { answerRound = null; notice(e.message, true); }
   finally { busy = false; render(); }
 }
