@@ -2,6 +2,33 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {newMonopoly,mutateMonopoly,monopolyPublic} from '../lib/monopoly.mjs';
 const admin={role:'admin'};
+function assertFirebaseSafe(value,path='game'){
+  assert.notEqual(value,undefined,`${path} must not contain undefined`);
+  if(value&&typeof value==='object')for(const [key,child] of Object.entries(value))assertFirebaseSafe(child,`${path}.${key}`);
+}
+test('roll, automatic question and first answer survive Firebase empty-field removal',()=>{
+  const g=game();g.questionBank=[g.questionBank[0]];
+  const member=join(g,'mobile','team0');
+  mutateMonopoly(g,'monopolyRoll',{}, {},100);
+  assertFirebaseSafe(g);
+  assert.equal(Object.hasOwn(g.public.lastRoll,'answers'),false);
+  const r=g.lastRoll;
+  mutateMonopoly(g,'monopolyTick',{}, {},r.readyAt-1);
+  assert.equal(r.phase,'landing');
+  mutateMonopoly(g,'monopolyTick',{}, {},r.readyAt);
+  assert.equal(r.phase,'question');
+  delete r.answers; // Realtime Database does not preserve empty objects.
+  mutateMonopoly(g,'monopolyAnswer',{roundId:r.id,choice:0},member,r.readyAt+200);
+  assert.equal(r.answers.mobile.correct,true);
+  assertFirebaseSafe(g);
+  mutateMonopoly(g,'monopolyTick',{}, {},r.deadline);
+  assert.equal(r.phase,'resolved');assert.equal(g.turn,1);assertFirebaseSafe(g);
+});
+test('empty question bank reports a useful error without moving a pawn',()=>{
+  const g=newMonopoly('EMPTY1',0);
+  assert.throws(()=>mutateMonopoly(g,'monopolyRoll',{}, {},100),/ยังไม่มีคำถาม/);
+  assert.equal(g.players.team0.position,1);assert.equal(g.lastRoll,undefined);
+});
 function game(){const g=newMonopoly('ABC123',0);g.questionBank=[{id:'q1',type:'choice',title:'เลือก',options:['ใช่','ไม่'],correct:0,seconds:10},{id:'q2',type:'number',title:'นับ',answer:7,seconds:10}];return g;}
 function join(g,id,teamId,at=0){mutateMonopoly(g,'monopolyJoin',{name:id,teamId},{id,role:'player'},at);return {id,role:'player'};}
 test('new games use 30 forward-only spaces and five teams',()=>{const g=game();assert.equal(g.spaces.length,30);assert.equal(g.boardLength,30);assert.equal(Object.keys(g.players).length,5);});

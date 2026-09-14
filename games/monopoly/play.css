@@ -13,3 +13,52 @@ body{background:#eff4ee;color:#1c382e}main{max-width:1000px}h1{text-align:center
 
 /* Projector view: the board owns the whole screen and the centre is the question. */
 .projector{background:#edf4ea;overflow:hidden}.projector main{max-width:none;width:100dvw;height:100dvh;min-height:0;padding:clamp(10px,1.5vw,24px);display:flex;flex-direction:column;gap:10px}.game-header{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-shrink:0}.game-header h1{font-size:clamp(28px,4vw,58px);margin:0}.game-header strong{display:block;font-size:clamp(16px,2vw,28px);text-align:right}.game-header small{display:block;text-align:right;color:#62816a}.projector .players{margin:0;gap:8px;flex-shrink:0}.score-chip{padding:8px 16px;border:3px solid var(--team-color);border-radius:999px;background:#fff;font-size:clamp(14px,1.6vw,22px);font-weight:700}.projector .board-shell{flex:1;min-height:0;width:100%;aspect-ratio:auto;margin:0;border-width:10px;border-radius:28px;box-shadow:0 18px 0 #b2c6b5,0 28px 55px #28472e25}.projector .board{inset:0}.projector .space{font-size:clamp(13px,2.2vw,30px);border-width:2px;border-top-width:8px}.projector .space-number{font-size:clamp(15px,2.8vw,38px)}.projector .board-center{inset:13%;gap:12px}.projector .board-center>button{width:clamp(110px,12vw,190px);height:clamp(58px,6vw,96px);aspect-ratio:auto;border-radius:18px;background:#203d35;color:#fff;font-size:clamp(18px,2vw,30px);font-weight:700;box-shadow:0 8px 0 #142b25}.projector .board-center>button:disabled{opacity:.65}.projector #message{font-size:clamp(15px,1.8vw,26px)}.question-card{width:min(90%,760px);padding:clamp(16px,2vw,30px);border:3px solid #d5bf72;border-radius:24px;background:#fffdf3;box-shadow:0 12px 35px #5553}.question-card span{color:#9a7a27;font-size:clamp(12px,1.3vw,18px)}.question-card h2{font-size:clamp(22px,3.2vw,48px);margin:8px 0 0}.question-card img{display:block;max-width:100%;max-height:24dvh;margin:10px auto;border-radius:14px}.hero{font-size:clamp(13px,1.5vw,22px);color:#9a7a27;margin:0}.projector .join-display{position:absolute;right:2%;bottom:2%;margin:0;transform:scale(.72);transform-origin:bottom right}.projector .join-display img{width:86px;height:86px}.projector .token{width:clamp(22px,2.5vw,38px);height:clamp(22px,2.5vw,38px);font-size:clamp(11px,1.2vw,17px);border-width:3px}@media(max-width:700px){.projector main{padding:8px}.game-header h1{font-size:28px}.game-header strong{font-size:14px}.score-chip{padding:5px 8px;font-size:12px}.projector .board-shell{border-width:4px}.projector .board-center{inset:17% 10%}.projector .join-display{transform:scale(.5)}}
+/* Keep the die visible and animate without changing the page geometry. */
+.projector .board-center>button{height:auto;min-height:130px;gap:4px;padding:12px}
+.projector #dice.die-display{font-family:Arial,sans-serif;font-size:90px;line-height:1;display:block}
+.projector .roll-label{font-size:18px}
+.projector .tossing #dice{animation:die-bounce .3s ease-in-out infinite alternate}
+@keyframes die-bounce{from{transform:translateY(-8px) rotate(-15deg)}to{transform:translateY(2px) rotate(15deg)}}
+.leaderboard{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;font-size:14px;flex-shrink:0}
+.leaderboard:empty{display:none}
+.projector-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px;text-align:left}
+.projector-option{border:1px solid #d7d9c5;border-radius:10px;padding:8px;font-size:clamp(14px,1.7vw,24px)}
+.projector .question-card{max-height:100%;overflow:auto;pointer-events:auto}
+.projector .token{box-shadow:0 4px 0 #203d2960,0 6px 10px #0004}
+.projector #message{margin:4px 0}
+@media(prefers-reduced-motion:reduce){.projector .tossing #dice{animation:none}}
+
+/* Arcade board: saturated tiles, a navy frame and a quiet question stage. */
+.projector{background:#111d37;color:#f6f4ea}
+.projector main{padding:clamp(10px,1.2vw,20px);gap:8px}
+.projector .game-header h1{color:#fff4ce;font-size:clamp(26px,3vw,46px);text-shadow:0 3px 0 #0003}
+.projector .eyebrow,.projector .game-header small{color:#a6bedb}
+.projector .score-chip{border-radius:12px;border-width:0;border-bottom:4px solid var(--team-color);background:#243653;color:#fff;padding:8px 16px;box-shadow:inset 4px 0 var(--team-color)}
+.projector .leaderboard{color:#ffd77a}
+.projector .board-shell{border:6px solid #f4cb6c;border-radius:22px;background-color:#192b49;background-image:radial-gradient(circle,#9ab5e51a 1px,transparent 1px),radial-gradient(ellipse at center,#30486a,#15243e);background-size:20px 20px,100% 100%;box-shadow:0 5px 0 #a37434,0 12px 25px #0004}
+.projector .space{border:2px solid #1b2d49;border-radius:9px;padding:5px;gap:3px;background:linear-gradient(135deg,#ffffff35,transparent 60%),var(--tile-color);box-shadow:inset 0 3px 0 #ffffff65,inset 0 -5px 0 #172e4326}
+.projector .space::after{content:'';position:absolute;right:6px;bottom:6px;width:13px;height:13px;border:2px solid #fff5;transform:rotate(45deg);pointer-events:none}
+.projector .space-number{color:#102940;font-size:clamp(19px,2.8vw,40px);text-shadow:0 1px #fff5;z-index:1}
+.projector .start-space,.projector .finish-space{background:linear-gradient(135deg,#fff3a8,#f3bb43);border-color:#795321}
+.projector .start-space .space-number{font-size:clamp(12px,1.7vw,24px)}
+.projector .board-center{inset:calc(var(--edge-y) + 2%) calc(var(--edge-x) + 2%);gap:10px;border:1px solid #9bb6e32b;border-radius:20px;background:radial-gradient(ellipse,#29405c88,transparent 70%)}
+.projector .board-center>button{color:#18304a;background:linear-gradient(145deg,#fff7d4,#f6c757);border:2px solid #ffeca9;box-shadow:0 7px 0 #aa742d,0 12px 25px #0004}
+.projector #message{color:#e5efff;font-size:clamp(13px,1.6vw,23px)}
+.projector #message.bad{color:#a02031}
+.projector .hero{color:#ffda7c}
+.projector .question-card{color:#16314a;background:#fffdf4;border-color:#f3cc70}
+.projector .tokens{position:relative;z-index:2;gap:3px;min-height:0}
+.projector .token{width:clamp(19px,2.25vw,34px);height:clamp(19px,2.25vw,34px);border:2px solid #fff;font-weight:800;text-shadow:0 1px 2px #0008;box-shadow:inset 0 3px 0 #fff5,0 3px 0 #163047,0 5px 6px #0005}
+.projector .join-display{background:#0c1c32;border-color:#6b84a7;box-shadow:0 5px 15px #0003}
+@media(max-height:650px){.projector .eyebrow{display:none}.projector .game-header h1{font-size:26px}.projector .score-chip{padding:4px 10px;font-size:13px}.projector .board-center>button{min-height:95px;padding:5px}.projector #dice.die-display{font-size:62px}.projector .join-display{transform:scale(.55)}}
+
+.projector .join-display{pointer-events:auto;cursor:zoom-in}
+.projector .join-display:focus-visible{outline:3px solid #ffdc7d;outline-offset:5px}
+.fullscreen-button{display:block;margin:0 0 8px auto;padding:8px 14px;border:1px solid #7188aa;border-radius:10px;background:#263b5b;color:#fff;font:inherit;font-size:14px;cursor:pointer}
+.qr-dialog{padding:0;max-width:94vw;max-height:94dvh;background:transparent;overflow:auto;border:0;border-radius:24px}
+.qr-dialog::backdrop{background:#081224dc;backdrop-filter:blur(6px)}
+.qr-large{display:flex;flex-direction:column;align-items:center;gap:16px;padding:clamp(16px,3vw,32px);border:3px solid #f4cb6c;border-radius:24px;background:#fff;color:#162c47;font:inherit;cursor:zoom-out;box-shadow:0 16px 60px #0005}
+.qr-large img{display:block;width:min(65vw,65dvh,680px);height:auto;aspect-ratio:1;background:#fff}
+.qr-large strong{font-size:clamp(20px,3vw,32px)}
+.qr-large span{font-size:clamp(12px,1.6vw,18px)}
+.qr-large:focus-visible{outline:3px solid #448df6;outline-offset:-7px}

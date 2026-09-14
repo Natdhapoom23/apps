@@ -1,4 +1,4 @@
-import { api, roomCode } from '../live/shared.js';
+import { api, roomCode, now } from '../live/shared.js';
 const $ = s => document.querySelector(s), code = roomCode(), keyName = `monopoly-player-${code}`;
 let joinKey = localStorage.getItem(`${keyName}-join-key`);
 if (!joinKey) { joinKey = [...crypto.getRandomValues(new Uint8Array(16))].map(x => x.toString(16).padStart(2, '0')).join(''); localStorage.setItem(`${keyName}-join-key`, joinKey); }
@@ -26,7 +26,7 @@ function render() {
   const team = state.players?.find(t => t.id === participant.teamId);
   $('#player-team').textContent = team?.name || 'ทีมของคุณ';
   const r = state.lastRoll;
-  const active = r?.phase === 'question' && Date.now() < r.deadline;
+  const active = r?.phase === 'question' && now() < r.deadline;
   $('#question-panel').hidden = !active;
   if (!r) { $('#status').textContent = state.winner ? `🏆 ${state.winner.name} ชนะเกม` : 'รอทีมของคุณทอยลูกเต๋า'; return; }
   if (r.phase === 'landing') { $('#status').textContent = 'กำลังเดินเบี้ยบนจอหลัก...'; return; }
@@ -34,10 +34,15 @@ function render() {
     $('#status').textContent = active ? 'ดูคำถามบนจอหลัก แล้วส่งคำตอบของคุณ' : 'หมดเวลาตอบแล้ว';
     if (active) {
       $('#question').textContent = 'คำถามแสดงอยู่บนจอหลัก';
-      const options = $('#options'); options.replaceChildren();
+      const options = $('#options');
+      if (options.dataset.round !== r.id) {
+      options.dataset.round = r.id; options.replaceChildren();
       if (r.question.type === 'choice') r.question.options.forEach((x, i) => { const b = document.createElement('button'); b.textContent = x; b.disabled = busy || answerRound === r.id; b.onclick = () => send({choice:i}, r.id); options.append(b); });
+      else if (r.question.type === 'boolean') [true,false].forEach(value=>{const b=document.createElement('button');b.textContent=value?'ถูก':'ผิด';b.onclick=()=>send({answer:value},r.id);options.append(b);});
       else { const input=document.createElement('input'); input.className='mobile-answer'; input.type=r.question.type==='number'||r.question.type==='image-count'?'number':'text'; input.inputMode=input.type==='number'?'numeric':'text'; input.placeholder='พิมพ์คำตอบ'; input.disabled=busy||answerRound===r.id; const b=document.createElement('button'); b.textContent='ส่งคำตอบ'; b.disabled=input.disabled; b.onclick=()=>send({answer:input.value},r.id); options.append(input,b); }
-      $('#timer').textContent = `เหลือ ${Math.max(0, Math.ceil((r.deadline - Date.now()) / 1000))} วินาที`;
+      }
+      options.querySelectorAll('button,input').forEach(el=>el.disabled=busy||answerRound===r.id);
+      $('#timer').textContent = `เหลือ ${Math.max(0, Math.ceil((r.deadline - now()) / 1000))} วินาที`;
     }
   } else { $('#status').textContent = r.hero ? `เฉลยแล้ว · ฮีโร่คือ ${r.hero.name}` : 'หมดเวลา ไม่มีคำตอบถูก'; }
 }
