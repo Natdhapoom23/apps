@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {landingAngle, coastProgress} from '../games/wheel/wheel-motion.js';
-import {newWheel, mutateWheel} from '../lib/wheel.mjs';
+import {newWheel, mutateWheel, wheelPublic} from '../lib/wheel.mjs';
 
 test('wheel lands with the selected segment center at the right-hand pointer after repeated spins', () => {
   let current = 0;
@@ -39,4 +39,30 @@ test('each spin has its own identity even when the same result repeats', () => {
   mutateWheel(w, 'wheelSpin', {}, {role: 'player'}, 2);
   assert.ok(w.public.spinRevision > first);
   assert.equal(w.public.options[w.public.resultIndex], w.public.result);
+});
+
+test('saving a Firebase-shaped wheel without null fields produces a valid public state', () => {
+  const w = newWheel('ABCDEF', 0);
+  delete w.result; // Realtime Database omits null-valued fields on read.
+  assert.equal(wheelPublic(w).result, null);
+  mutateWheel(w, 'wheelSave', {title:'วงล้อใหม่', options:['กาแฟ','ชา'], duration:15, locked:false}, {role:'admin'}, 1);
+  const check = value => {
+    assert.notEqual(value, undefined, 'Firebase rejects undefined values');
+    if(value && typeof value === 'object') Object.values(value).forEach(check);
+  };
+  check(w);
+  assert.deepEqual(w.public.options, ['กาแฟ','ชา']);
+  assert.equal(w.public.duration, 15);
+  assert.equal(w.public.result, null);
+});
+
+test('editing options clears the old winner and its index', () => {
+  const w = newWheel('ABCDEF', 0);
+  mutateWheel(w, 'wheelSpin', {}, {role:'player'}, 1);
+  mutateWheel(w, 'wheelSave', {title:w.title, options:['ตัวเลือกใหม่'], duration:10, locked:true, lockedResult:'ตัวเลือกใหม่'}, {role:'admin'}, 2);
+  assert.equal(w.public.result, null);
+  assert.equal(w.public.resultIndex, null);
+  assert.equal(w.public.spinRevision, null);
+  mutateWheel(w, 'wheelSpin', {}, {role:'player'}, 3);
+  assert.equal(w.public.result, 'ตัวเลือกใหม่');
 });
