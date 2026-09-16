@@ -67,6 +67,18 @@ test('empty question bank reports a useful error without moving a pawn',()=>{
   assert.throws(()=>mutateMonopoly(g,'monopolyRoll',{}, {},100),/ยังไม่มีคำถาม/);
   assert.equal(g.players.team0.position,1);assert.equal(g.lastRoll,undefined);
 });
+test('reset starts a new session and removes every prior participant',()=>{
+  const g=game();
+  const first=join(g,'nat','team0');
+  const second=join(g,'may','team1');
+  g.players.team0.position=9;g.players.team0.points=230;g.participants.nat.score=150;
+  mutateMonopoly(g,'monopolyReset',{},admin,100);
+  assert.deepEqual(g.participants,{});
+  assert.equal(g.players.team0.position,1);assert.equal(g.players.team0.points,0);
+  assert.equal(g.public.participantCount,0);assert.equal(g.public.players[0].members,0);
+  assert.throws(()=>mutateMonopoly(g,'monopolyAnswer',{roundId:'none'},first,101),/รอบนี้สิ้นสุดแล้ว/);
+  assert.ok(second);
+});
 function game(){const g=newMonopoly('ABC123',0);g.questionBank=[{id:'q1',type:'choice',title:'เลือก',options:['ใช่','ไม่'],correct:0,seconds:10},{id:'q2',type:'number',title:'นับ',answer:7,seconds:10}];return g;}
 function join(g,id,teamId,at=0){mutateMonopoly(g,'monopolyJoin',{name:id,teamId},{id,role:'player'},at);return {id,role:'player'};}
 test('new games use 30 forward-only spaces and five teams',()=>{const g=game();assert.equal(g.spaces.length,30);assert.equal(g.boardLength,30);assert.equal(Object.keys(g.players).length,5);});

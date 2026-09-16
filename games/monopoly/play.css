@@ -25,6 +25,7 @@ body{background:#eff4ee;color:#1c382e}main{max-width:1000px}h1{text-align:center
 .projector-option{border:1px solid #d7d9c5;border-radius:10px;padding:8px;font-size:clamp(14px,1.7vw,24px)}
 .projector .question-card{max-height:100%;overflow:auto;pointer-events:auto}
 .projector .token{box-shadow:0 4px 0 #203d2960,0 6px 10px #0004}
+.projector button{transition:transform .12s ease,filter .12s ease,box-shadow .12s ease}.projector button:active:not(:disabled){transform:translateY(5px) scale(.97);filter:brightness(1.12);box-shadow:0 2px 0 #a66f2b}
 .projector .token{animation:pawn-idle 1.15s ease-in-out infinite alternate}
 @keyframes pawn-idle{to{transform:translateY(-4px) scale(1.08);filter:brightness(1.22)}}
 .turn-focus{color:#ffdf83;font-size:clamp(17px,2vw,30px);font-weight:800;letter-spacing:.02em;text-shadow:0 2px 0 #0005}
