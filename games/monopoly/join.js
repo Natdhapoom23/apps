@@ -10,6 +10,7 @@ function showCountdown(){let n=3;countdown.textContent=n;countdown.classList.add
 const saveState = () => localStorage.setItem(tokenKey, participant ? (localStorage.getItem(tokenKey) || '') : '');
 function render() {
   if (!state) return;
+  document.body.classList.toggle('player-mode', Boolean(participant));
   $('#room-title').textContent = state.title;
   if (!participant) {
     const teamSelect = $('#team');
