@@ -96,7 +96,7 @@ function render(){
   if(!spaceEvent.hidden){spaceEvent.replaceChildren(node('span','event-kicker',`ช่อง ${r.to}`),node('h2','',landed.title||`ช่อง ${r.to}`),node('p','',landed.text||'ทีมที่ตกช่องนี้ทำภารกิจตามป้ายช่อง'));}
   $('#question-card').hidden=!q||r.phase!=='question';if($('#question-card').hidden)$('#question-card').style.transform='';
   if(q&&r.phase==='question'){
-    if(q.image&&$('#question-image').getAttribute('src')!==q.image)$('#question-image').src=q.image;
+    if(q.image&&$('#question-image').getAttribute('src')!==q.image){$('#question-image').referrerPolicy='no-referrer';$('#question-image').src=q.image;}
     $('#question-image').hidden=!q.image;$('#question-title').textContent=q.title;
     choices.replaceChildren(...(q.type==='boolean'?['ถูก','ผิด']:q.options||[]).map((x,i)=>node('div','projector-option',`${i+1}. ${x}`)));fitQuestionCard();
   }
