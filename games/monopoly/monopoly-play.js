@@ -1,12 +1,15 @@
 import {api,roomCode,node,now} from '../live/shared.js';
 const $=s=>document.querySelector(s),code=roomCode();
 const colors=['#f45b69','#368af5','#a567ed','#21b99b','#f6b63c','#ec69b4'];
-let state=null,pending=false,failure='',cells=[],tokens=new Map(),boardKey='',lastFrame='';
-const die=node('span','die-display','⚀');die.id='dice';die.setAttribute('aria-hidden','true');
+let state=null,pending=false,failure='',cells=[],tokens=new Map(),boardKey='',lastFrame='',lastRules='';
+const die=node('span','die-display cube');die.id='dice';die.setAttribute('aria-hidden','true');
+const facePips=[[5],[1,9],[1,5,9],[1,3,7,9],[1,3,5,7,9],[1,3,4,6,7,9]];
+facePips.forEach((pips,index)=>{const face=node('span',`die-face face-${index+1}`);pips.forEach(position=>face.append(node('i',`pip p${position}`)));die.append(face);});
 const rollLabel=node('span','roll-label','ทอยลูกเต๋า');$('#roll').replaceChildren(die,rollLabel);
 const turnFocus=node('div','turn-focus');$('.board-center').prepend(turnFocus);
 const choices=node('div','projector-options');$('#question-card').append(choices);
 const spaceEvent=node('div','space-event');spaceEvent.hidden=true;$('.board-center').prepend(spaceEvent);
+const rulesCard=node('section','rules-card');const rulesTitle=node('strong','','กติกาการเล่น');const rulesList=node('ol','rules-list');rulesCard.append(rulesTitle,rulesList);$('.board-center').insertBefore(rulesCard,$('#roll'));
 const leaderboard=node('aside','leaderboard');$('#players').after(leaderboard);
 const qr=$('#join-qr');qr.hidden=true;qr.onload=()=>{qr.hidden=false;};qr.onerror=()=>{qr.hidden=true;};qr.src=`/api/game?action=monopolyQr&room=${code}`;
 const qrTrigger=$('.join-display');
@@ -64,7 +67,7 @@ function paint(){
   const r=state.lastRoll,t=now(),elapsed=r?t-r.at:0,moving=r?.phase==='landing',tossing=moving&&elapsed<1200;
   $('#roll').classList.toggle('tossing',tossing);
   const value=tossing?1+Math.floor(Math.max(0,elapsed)/90)%6:r?.roll||1;
-  die.textContent=['⚀','⚁','⚂','⚃','⚄','⚅'][value-1];$('#roll').setAttribute('aria-label',`ทอยลูกเต๋า · ${value} แต้ม`);
+  if(!tossing)die.style.transform=['rotateX(-10deg) rotateY(14deg)','rotateX(-10deg) rotateY(-76deg)','rotateX(-100deg) rotateY(14deg)','rotateX(80deg) rotateY(14deg)','rotateX(-10deg) rotateY(104deg)','rotateX(-10deg) rotateY(194deg)'][value-1];$('#roll').setAttribute('aria-label',`ทอยลูกเต๋า · ${value} แต้ม`);
   const step=moving?Math.min(r.steps,Math.max(0,Math.floor((elapsed-1200)/240))):0;
   const frame=JSON.stringify([boardKey,r?.id,r?.phase,step,state.players.map(p=>p.position)]);
   if(frame!==lastFrame){lastFrame=frame;state.players.forEach(p=>{
@@ -79,6 +82,7 @@ function render(){
   const ps=state.players||[],r=state.lastRoll,active=r&&r.phase!=='resolved';
   $('#title').textContent=state.title;$('#turn-label').textContent=state.winner?'🏆 '+state.winner.name+' ชนะเกม!':`ตาของ ${ps[state.turn]?.name||'ทีมถัดไป'}`;
   turnFocus.textContent=state.winner?'จบเกม':`คิวทอยลูกเต๋า: ${ps[state.turn]?.name||'ทีมถัดไป'}`;
+  const rules=String(state.rules||'').split('\n').map(rule=>rule.trim()).filter(Boolean).slice(0,8),rulesKey=rules.join('\n');rulesCard.hidden=!rules.length;if(rulesKey!==lastRules){lastRules=rulesKey;rulesList.replaceChildren(...rules.map(rule=>node('li','',rule)));}
   $('#member-count').textContent=state.participantCount||0;$('#roll').disabled=pending||!!state.winner||!!active;$('#roll').hidden=r?.phase==='question';
   rollLabel.textContent=pending?'กำลังทอย…':r?.phase==='landing'?`${r.roll} แต้ม`:'ทอยลูกเต๋า';
   $('#players').replaceChildren(...ps.map((p,i)=>{const e=node('div','score-chip',`${i+1}. ${p.name} · ${p.points||0} คะแนน`);e.style.setProperty('--team-color',colors[i%colors.length]);return e;}));
