@@ -83,3 +83,11 @@ body{background:#eff4ee;color:#1c382e}main{max-width:1000px}h1{text-align:center
 .rules-list li::marker{color:#ffda7c;font-weight:800}
 @media(max-width:700px){.rules-card{padding:7px 10px}.rules-list{grid-template-columns:1fr;font-size:10px;gap:1px}.rules-card>strong{font-size:11px}}
 @media(prefers-reduced-motion:reduce){.projector #dice.die-display.cube{transition:none}.projector .tossing #dice.cube{animation:none}}
+
+/* The die itself is the control: remove the old gold button behind it. */
+.projector .board-center>button:has(#dice.cube){width:auto;height:auto;min-height:0;padding:0;background:transparent;border:0;box-shadow:none;color:#fff;gap:8px}
+.projector .board-center>button:has(#dice.cube):hover:not(:disabled){background:transparent;box-shadow:none;filter:brightness(1.1);transform:translateY(-2px)}
+.projector .board-center>button:has(#dice.cube):active:not(:disabled){background:transparent;box-shadow:none;transform:translateY(2px) scale(.98)}
+.projector .board-center>button:has(#dice.cube) .roll-label{padding:6px 14px;border-radius:999px;background:#193150;color:#fff;font-size:clamp(14px,1.5vw,20px);box-shadow:0 3px 0 #07152a}
+.projector .tossing #dice.cube{animation:projector-dice-toss 2.7s cubic-bezier(.18,.72,.27,1) both}
+@keyframes projector-dice-toss{0%{transform:rotateX(0) rotateY(0) scale(1)}20%{transform:translateY(-28px) rotateX(150deg) rotateY(130deg) rotateZ(16deg) scale(1.08)}48%{transform:translateY(5px) rotateX(370deg) rotateY(330deg) rotateZ(-14deg) scale(.96)}76%{transform:translateY(-12px) rotateX(570deg) rotateY(540deg) rotateZ(8deg) scale(1.03)}100%{transform:translateY(0) rotateX(720deg) rotateY(720deg) scale(1)}}

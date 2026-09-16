@@ -1,6 +1,6 @@
 import {api,roomCode,node,now} from '../live/shared.js';
 const $=s=>document.querySelector(s),code=roomCode();
-const colors=['#f45b69','#368af5','#a567ed','#21b99b','#f6b63c','#ec69b4'];
+const colors=['#f45b69','#368af5','#a567ed','#21b99b','#f6b63c','#ec69b4'],tossDuration=2800,stepDuration=300;
 let state=null,pending=false,failure='',cells=[],tokens=new Map(),boardKey='',lastFrame='',lastRules='';
 const die=node('span','die-display cube');die.id='dice';die.setAttribute('aria-hidden','true');
 const facePips=[[5],[1,9],[1,5,9],[1,3,7,9],[1,3,5,7,9],[1,3,4,6,7,9]];
@@ -64,11 +64,11 @@ function buildBoard(){
 }
 function paint(){
   if(!state)return;
-  const r=state.lastRoll,t=now(),elapsed=r?t-r.at:0,moving=r?.phase==='landing',tossing=moving&&elapsed<1200;
+  const r=state.lastRoll,t=now(),elapsed=r?t-r.at:0,moving=r?.phase==='landing',tossing=moving&&elapsed<tossDuration;
   $('#roll').classList.toggle('tossing',tossing);
   const value=tossing?1+Math.floor(Math.max(0,elapsed)/90)%6:r?.roll||1;
   if(!tossing)die.style.transform=['rotateX(-10deg) rotateY(14deg)','rotateX(-10deg) rotateY(-76deg)','rotateX(-100deg) rotateY(14deg)','rotateX(80deg) rotateY(14deg)','rotateX(-10deg) rotateY(104deg)','rotateX(-10deg) rotateY(194deg)'][value-1];$('#roll').setAttribute('aria-label',`ทอยลูกเต๋า · ${value} แต้ม`);
-  const step=moving?Math.min(r.steps,Math.max(0,Math.floor((elapsed-1200)/240))):0;
+  const step=moving?Math.min(r.steps,Math.max(0,Math.floor((elapsed-tossDuration)/stepDuration))):0;
   const frame=JSON.stringify([boardKey,r?.id,r?.phase,step,state.players.map(p=>p.position)]);
   if(frame!==lastFrame){lastFrame=frame;state.players.forEach(p=>{
     const pos=moving&&p.id===r.player?r.from+step:p.position;
