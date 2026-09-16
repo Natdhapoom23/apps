@@ -1,6 +1,7 @@
 import {api,roomCode,node,now} from '../live/shared.js';
 const $=s=>document.querySelector(s),code=roomCode();
 const colors=['#f45b69','#368af5','#a567ed','#21b99b','#f6b63c','#ec69b4'],tossDuration=2800,stepDuration=300;
+const defaultRules='ผลัดกันทอยลูกเต๋า เดินตามแต้มที่ได้\nตอบคำถามบนหน้าจอให้ถูกต้องและรวดเร็วที่สุด\nคะแนนขึ้นอยู่กับความถูกต้องและความเร็ว\nทีมที่ตอบถูกเร็วที่สุด ได้เดินหน้า 1 ช่อง\nทีมไหนไปถึงช่อง 30 ก่อน ชนะ ได้เงินรางวัล 5,000 บาท';
 let state=null,pending=false,failure='',cells=[],tokens=new Map(),boardKey='',lastFrame='',lastRules='';
 const die=node('span','die-display cube');die.id='dice';die.setAttribute('aria-hidden','true');
 const facePips=[[5],[1,9],[1,5,9],[1,3,7,9],[1,3,5,7,9],[1,3,4,6,7,9]];
@@ -82,7 +83,7 @@ function render(){
   const ps=state.players||[],r=state.lastRoll,active=r&&r.phase!=='resolved';
   $('#title').textContent=state.title;$('#turn-label').textContent=state.winner?'🏆 '+state.winner.name+' ชนะเกม!':`ตาของ ${ps[state.turn]?.name||'ทีมถัดไป'}`;
   turnFocus.textContent=state.winner?'จบเกม':`คิวทอยลูกเต๋า: ${ps[state.turn]?.name||'ทีมถัดไป'}`;
-  const rules=String(state.rules||'').split('\n').map(rule=>rule.trim()).filter(Boolean).slice(0,8),rulesKey=rules.join('\n');rulesCard.hidden=!rules.length;if(rulesKey!==lastRules){lastRules=rulesKey;rulesList.replaceChildren(...rules.map(rule=>node('li','',rule)));}
+  const rules=String(state.rules||defaultRules).split('\n').map(rule=>rule.trim()).filter(Boolean).slice(0,8),rulesKey=rules.join('\n');rulesCard.hidden=!rules.length;if(rulesKey!==lastRules){lastRules=rulesKey;rulesList.replaceChildren(...rules.map(rule=>node('li','',rule)));}
   $('#member-count').textContent=state.participantCount||0;$('#roll').disabled=pending||!!state.winner||!!active;$('#roll').hidden=r?.phase==='question';
   rollLabel.textContent=pending?'กำลังทอย…':r?.phase==='landing'?`${r.roll} แต้ม`:'ทอยลูกเต๋า';
   $('#players').replaceChildren(...ps.map((p,i)=>{const e=node('div','score-chip',`${i+1}. ${p.name} · ${p.points||0} คะแนน`);e.style.setProperty('--team-color',colors[i%colors.length]);return e;}));
