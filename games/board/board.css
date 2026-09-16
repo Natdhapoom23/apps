@@ -26,3 +26,9 @@
 .board-play .tile:active .tile-tilt{transform:scale(.97)}
 @media(max-width:650px){.board-play main{gap:12px}.board-play .top{gap:8px;align-items:flex-start}.board-controls{flex-direction:column;align-items:flex-end;gap:6px}.board-controls button{padding:8px;font-size:12px}.board-play .sub{font-size:12px}.board-play .tiles{grid-template-rows:repeat(var(--mobile-rows,9),minmax(90px,1fr))}.tile-face{border-radius:12px;padding:8px}.tile-hint{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.tile-tilt,.tile-flipper{transition:none}.board-play .tile .tile-tilt{transform:none}}
+/* Reusable button feedback for both the room controls and fullscreen board. */
+button,.button{transition:transform .14s ease,filter .14s ease,box-shadow .14s ease,background-color .14s ease}
+@media(hover:hover){button:not(:disabled):hover,.button:not([aria-disabled="true"]):hover{transform:translateY(-2px);filter:brightness(1.06);box-shadow:0 8px 16px rgba(21,29,62,.16)}}
+button:not(:disabled):active,.button:not([aria-disabled="true"]):active{transform:translateY(1px) scale(.98);filter:brightness(.96);box-shadow:none}
+button:disabled,.button[aria-disabled="true"]{cursor:not-allowed;opacity:.5}
+@media(prefers-reduced-motion:reduce){button,.button{transition:none}}

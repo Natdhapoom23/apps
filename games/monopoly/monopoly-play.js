@@ -6,6 +6,7 @@ const die=node('span','die-display','⚀');die.id='dice';die.setAttribute('aria-
 const rollLabel=node('span','roll-label','ทอยลูกเต๋า');$('#roll').replaceChildren(die,rollLabel);
 const turnFocus=node('div','turn-focus');$('.board-center').prepend(turnFocus);
 const choices=node('div','projector-options');$('#question-card').append(choices);
+const spaceEvent=node('div','space-event');spaceEvent.hidden=true;$('.board-center').prepend(spaceEvent);
 const leaderboard=node('aside','leaderboard');$('#players').after(leaderboard);
 const qr=$('#join-qr');qr.hidden=true;qr.onload=()=>{qr.hidden=false;};qr.onerror=()=>{qr.hidden=true;};qr.src=`/api/game?action=monopolyQr&room=${code}`;
 const qrTrigger=$('.join-display');
@@ -29,7 +30,7 @@ fullscreen.onclick=async()=>{
 document.addEventListener('fullscreenchange',()=>{fullscreen.textContent=document.fullscreenElement?'ออกจากเต็มหน้าจอ ↙':'ขยายเต็มหน้าจอ ↗';});
 
 function buildBoard(){
-  const n=state.boardLength||30,ps=state.players||[];
+  const n=state.boardLength||30,ps=state.players||[],spaces=state.spaces||[];
   const bounds=$('#board').getBoundingClientRect();
   const sum=Math.floor(n/2)+2;
   const columns=Math.max(3,Math.min(sum-3,Math.round(sum*bounds.width/(bounds.width+bounds.height))));
@@ -49,7 +50,11 @@ function buildBoard(){
     const e=node('div','space'+(!i?' start-space':'')+(i===n-1?' finish-space':''));
     Object.assign(e.style,{left:x*100/columns+'%',top:y*100/rows+'%',width:w*100/columns+'%',height:h*100/rows+'%'});
     e.style.setProperty('--stripe',colors[i%colors.length]);e.style.setProperty('--tile-color',['#ffb647','#45b9ee','#af83ee','#37c7aa','#f47c8e'][i%5]);
-    e.append(node('span','space-number',i===0?'เริ่มต้น':i===n-1?'🏁 '+n:String(i+1)));
+    const space=spaces[i]||{};
+    const defaultTitle=i?'ช่อง '+(i+1):'Start/Finish';
+    const label=i===0?'เริ่มต้น':i===n-1?'🏁 '+n:(space.title&&space.title!==defaultTitle?space.title:String(i+1));
+    e.append(node('span','space-number',label));
+    if(space.title&&space.title!==defaultTitle)e.append(node('span','space-label',String(i+1)));
     const holder=node('div','tokens');e.append(holder);cells.push(holder);return e;
   }));
   ps.forEach((p,i)=>{const t=node('span','token',i+1);t.title=p.name;t.style.background=colors[i%colors.length];tokens.set(p.id,t);});
@@ -80,7 +85,10 @@ function render(){
   const leaders=(state.participants||[]).slice().sort((a,b)=>(b.score||0)-(a.score||0)).slice(0,5);
   const teamName=id=>ps.find(p=>p.id===id)?.name||'ไม่ระบุกลุ่ม';
   leaderboard.replaceChildren(...leaders.map((p,i)=>node('span','leader-row',`${i===0?'👑':i+1} ${p.name} (${teamName(p.teamId)}) · ${p.score||0}`)));
-  buildBoard();const q=r?.question;$('#question-card').hidden=!q||r.phase!=='question';
+  buildBoard();const q=r?.question,landed=r&&r.phase==='landing'&&now()>=r.readyAt-1000?state.spaces?.[Math.max(0,r.to-1)]:null;
+  spaceEvent.hidden=!(landed?.text||landed?.title&&landed.title!==`ช่อง ${r.to}`);
+  if(!spaceEvent.hidden){spaceEvent.replaceChildren(node('span','event-kicker',`ช่อง ${r.to}`),node('h2','',landed.title||`ช่อง ${r.to}`),node('p','',landed.text||'ทีมที่ตกช่องนี้ทำภารกิจตามป้ายช่อง'));}
+  $('#question-card').hidden=!q||r.phase!=='question';
   if(q&&r.phase==='question'){
     if(q.image&&$('#question-image').getAttribute('src')!==q.image)$('#question-image').src=q.image;
     $('#question-image').hidden=!q.image;$('#question-title').textContent=q.title;

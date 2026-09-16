@@ -32,3 +32,9 @@ input[type=checkbox]{width:auto;margin:0 8px 0 0;vertical-align:middle}label:has
 .button.secondary:hover{background:#eef0f8;border-color:#a9b3cb}
 .button:focus-visible{outline:3px solid #8271de;outline-offset:3px}
 .admin-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+/* Give every wheel control clear hover, press, and disabled feedback. */
+button,.button{transition:transform .14s ease,filter .14s ease,box-shadow .14s ease,background-color .14s ease}
+@media(hover:hover){button:not(:disabled):hover,.button:not([aria-disabled="true"]):hover{transform:translateY(-2px);filter:brightness(1.07);box-shadow:0 8px 16px rgba(47,39,108,.18)}}
+button:not(:disabled):active,.button:not([aria-disabled="true"]):active{transform:translateY(1px) scale(.98);filter:brightness(.96);box-shadow:none}
+button:disabled,.button[aria-disabled="true"]{cursor:not-allowed;opacity:.5}
+@media(prefers-reduced-motion:reduce){button,.button{transition:none}}

@@ -18,3 +18,9 @@ body.display-body:fullscreen{min-height:100vh;overflow:auto}
 @media(max-width:800px){.display-shell{min-height:calc(100vh - 70px)}.stage{min-height:0}}
 
 #q-preview{display:block;width:100%;max-height:220px;object-fit:contain;border:1px solid var(--line);border-radius:10px;background:#f4f6f4;margin-top:8px;padding:6px}
+/* Shared feedback for controls on the lobby, teacher, player, and display screens. */
+button,.button{transition:transform .14s ease,filter .14s ease,box-shadow .14s ease,background-color .14s ease}
+@media(hover:hover){button:not(:disabled):hover,.button:not([aria-disabled="true"]):hover{transform:translateY(-2px);filter:brightness(1.06);box-shadow:0 8px 16px rgba(16,36,26,.16)}}
+button:not(:disabled):active,.button:not([aria-disabled="true"]):active{transform:translateY(1px) scale(.98);filter:brightness(.96);box-shadow:none}
+button:disabled,.button[aria-disabled="true"]{cursor:not-allowed;opacity:.5}
+@media(prefers-reduced-motion:reduce){button,.button{transition:none}}
