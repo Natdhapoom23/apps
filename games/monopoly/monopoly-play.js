@@ -1,12 +1,13 @@
 import {api,roomCode,node,now} from '../live/shared.js';
 const $=s=>document.querySelector(s),code=roomCode();
-const colors=['#f45b69','#368af5','#a567ed','#21b99b','#f6b63c','#ec69b4'],tossDuration=2800,stepDuration=300;
+const colors=['#f45b69','#368af5','#a567ed','#21b99b','#f6b63c','#ec69b4'],tossDuration=4000,stepDuration=300;
 const defaultRules='ผลัดกันทอยลูกเต๋า เดินตามแต้มที่ได้\nตอบคำถามบนหน้าจอให้ถูกต้องและรวดเร็วที่สุด\nคะแนนขึ้นอยู่กับความถูกต้องและความเร็ว\nทีมที่ตอบถูกเร็วที่สุด ได้เดินหน้า 1 ช่อง\nทีมไหนไปถึงช่อง 30 ก่อน ชนะ ได้เงินรางวัล 5,000 บาท';
 let state=null,pending=false,failure='',cells=[],tokens=new Map(),boardKey='',lastFrame='',lastRules='';
 const die=node('span','die-display cube');die.id='dice';die.setAttribute('aria-hidden','true');
 const facePips=[[5],[1,9],[1,5,9],[1,3,7,9],[1,3,5,7,9],[1,3,4,6,7,9]];
 facePips.forEach((pips,index)=>{const face=node('span',`die-face face-${index+1}`);pips.forEach(position=>face.append(node('i',`pip p${position}`)));die.append(face);});
 const rollLabel=node('span','roll-label','ทอยลูกเต๋า');$('#roll').replaceChildren(die,rollLabel);
+const diceOverlay=node('div','dice-overlay');diceOverlay.setAttribute('aria-hidden','true');const overlayDie=die.cloneNode(true);overlayDie.removeAttribute('id');diceOverlay.append(overlayDie,node('strong','dice-overlay-label','กำลังทอยลูกเต๋า…'));document.body.append(diceOverlay);
 const turnFocus=node('div','turn-focus');$('.board-center').prepend(turnFocus);
 const choices=node('div','projector-options');$('#question-card').append(choices);
 const spaceEvent=node('div','space-event');spaceEvent.hidden=true;$('.board-center').prepend(spaceEvent);
@@ -25,8 +26,8 @@ qrTrigger.onclick=()=>{qrDialog.showModal();qrTrigger.setAttribute('aria-expande
 qrTrigger.onkeydown=e=>{if(['Enter',' '].includes(e.key)){e.preventDefault();e.stopPropagation();qrTrigger.click();}};
 qrDialog.onclick=()=>qrDialog.close();
 qrDialog.addEventListener('close',()=>{qrTrigger.setAttribute('aria-expanded','false');qrTrigger.focus();});
-const fullscreen=node('button','fullscreen-button','ขยายเต็มหน้าจอ ↗');fullscreen.type='button';
-$('.game-header').lastElementChild.prepend(fullscreen);
+const fullscreen=node('button','fullscreen-button','ขยายเต็มหน้าจอ ↗'),refresh=node('button','refresh-button','รีเฟรช ↻'),headerControls=node('div','projector-controls');fullscreen.type='button';refresh.type='button';headerControls.append(refresh,fullscreen);$('.game-header').lastElementChild.prepend(headerControls);
+refresh.onclick=()=>window.location.reload();
 fullscreen.onclick=async()=>{
   try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}
   catch{failure='เบราว์เซอร์นี้ไม่สามารถเปิดโหมดเต็มหน้าจอได้';render();}
@@ -68,7 +69,7 @@ function paint(){
   const r=state.lastRoll,t=now(),elapsed=r?t-r.at:0,moving=r?.phase==='landing',tossing=moving&&elapsed<tossDuration;
   $('#roll').classList.toggle('tossing',tossing);
   const value=tossing?1+Math.floor(Math.max(0,elapsed)/90)%6:r?.roll||1;
-  if(!tossing)die.style.transform=['rotateX(-10deg) rotateY(14deg)','rotateX(-10deg) rotateY(-76deg)','rotateX(-100deg) rotateY(14deg)','rotateX(80deg) rotateY(14deg)','rotateX(-10deg) rotateY(104deg)','rotateX(-10deg) rotateY(194deg)'][value-1];$('#roll').setAttribute('aria-label',`ทอยลูกเต๋า · ${value} แต้ม`);
+  const rotation=['rotateX(-10deg) rotateY(14deg)','rotateX(-10deg) rotateY(-76deg)','rotateX(-100deg) rotateY(14deg)','rotateX(80deg) rotateY(14deg)','rotateX(-10deg) rotateY(104deg)','rotateX(-10deg) rotateY(194deg)'][value-1];if(!tossing){die.style.transform=rotation;overlayDie.style.transform=rotation;}diceOverlay.classList.toggle('visible',tossing);$('#roll').setAttribute('aria-label',`ทอยลูกเต๋า · ${value} แต้ม`);
   const step=moving?Math.min(r.steps,Math.max(0,Math.floor((elapsed-tossDuration)/stepDuration))):0;
   const frame=JSON.stringify([boardKey,r?.id,r?.phase,step,state.players.map(p=>p.position)]);
   if(frame!==lastFrame){lastFrame=frame;state.players.forEach(p=>{
@@ -93,16 +94,17 @@ function render(){
   buildBoard();const q=r?.question,landed=r&&r.phase==='landing'&&now()>=r.readyAt-1000?state.spaces?.[Math.max(0,r.to-1)]:null;
   spaceEvent.hidden=!(landed?.text||landed?.title&&landed.title!==`ช่อง ${r.to}`);
   if(!spaceEvent.hidden){spaceEvent.replaceChildren(node('span','event-kicker',`ช่อง ${r.to}`),node('h2','',landed.title||`ช่อง ${r.to}`),node('p','',landed.text||'ทีมที่ตกช่องนี้ทำภารกิจตามป้ายช่อง'));}
-  $('#question-card').hidden=!q||r.phase!=='question';
+  $('#question-card').hidden=!q||r.phase!=='question';if($('#question-card').hidden)$('#question-card').style.transform='';
   if(q&&r.phase==='question'){
     if(q.image&&$('#question-image').getAttribute('src')!==q.image)$('#question-image').src=q.image;
     $('#question-image').hidden=!q.image;$('#question-title').textContent=q.title;
-    choices.replaceChildren(...(q.type==='boolean'?['ถูก','ผิด']:q.options||[]).map((x,i)=>node('div','projector-option',`${i+1}. ${x}`)));
+    choices.replaceChildren(...(q.type==='boolean'?['ถูก','ผิด']:q.options||[]).map((x,i)=>node('div','projector-option',`${i+1}. ${x}`)));fitQuestionCard();
   }
   $('#hero').textContent=r?.hero?`ฮีโร่ล่าสุด: ${r.hero.name} (${teamName(r.hero.teamId)}) · +${r.hero.score} คะแนน`:'';
   $('#message').className=failure?'notice bad':'';
   $('#message').textContent=failure||(r?.phase==='landing'?'กำลังทอยและเดินเบี้ย…':r?.phase==='question'?'ส่งคำตอบจากมือถือได้เลย':state.winner?'จบเกม':r?.phase==='resolved'?(r.message||'จบเทิร์น · ทีมถัดไปทอยได้เลย'):'กดลูกเต๋า หรือ Space / Enter / R เพื่อทอย');paint();
 }
+function fitQuestionCard(){const card=$('#question-card');requestAnimationFrame(()=>{if(card.hidden)return;card.style.transform='';const available=$('.board-center').clientHeight-18,scale=Math.min(1,available/card.scrollHeight);card.style.transform=scale<1?`scale(${Math.max(.64,scale)})`:'';});}
 function receive(next){if(!next)return;if(state&&next.revision<state.revision)return;state=next;render();}
 async function poll(){
   try{const r=await api('monopolyPublic',{room:code},'',true);receive(r.state);}
